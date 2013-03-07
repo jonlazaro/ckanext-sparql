@@ -1,0 +1,23 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+    <py:def function="page_title">SPARQL Enpoint</py:def>
+    <py:def function="page_heading">SPARQL Endpoint</py:def>
+
+    <div py:match="content">
+        <xi:include href="../snippets/form_sparql_gui.html" />
+    </div>
+
+    <div py:match="primarysidebar">
+        <li class="widget-container boxed widget_text">
+            <h3>SPARQL queries</h3>
+            <p>
+                You can search this site through SPARQL queries. SPARQL query language specification is available <a href="http://www.w3.org/TR/rdf-sparql-query/" target="_blank">here</a>.
+            </p>
+        </li>
+    </div>
+    
+    <xi:include href="../layout.html" />
+</html>

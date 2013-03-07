@@ -1,0 +1,62 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">Administration - SPARQL Configuration</py:def>
+  <py:def function="page_heading">Administration - SPARQL Configuration</py:def>
+
+  <div py:match="content">
+    <h2>RDF Store configuration</h2>
+    <form 
+      id="admin-rdfstore-configuration" 
+      action="/ckan-admin/sparql-config" 
+      method="post"
+      class="form-horizontal"
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
+
+      <xi:include href="../snippets/form_rdfstore.html" />
+
+      <h4>RDF store for 3rd party data storage:</h4>
+      <div class="control-group">
+        <label class="control-label" for="dataallowed">Allow data storage</label>
+        <div class="controls">
+          <input type="checkbox" name="dataallowed" checked="${'checked' if c.storeconfigform.endpoint_dataallowed else None}"/>
+          <p id="license-instructions">If checked, you allow other dataset editors to insert data in this endpoint (always on different graphs for each dataset)</p>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <input id="save" class="btn btn-primary" name="save" type="submit" value="Save Changes" />
+      </div>
+      
+    </form>
+
+    <br />
+
+    <div py:if="c.storeconfigform['endpoint_enabled'] != None">
+      <h2>RDF store status</h2>
+      <form 
+        id="admin-rdfstore-enabledisable" 
+        action="/ckan-admin/sparql-config" 
+        method="post"
+        class="form-horizontal"
+        xmlns:i18n="http://genshi.edgewall.org/i18n"
+        xmlns:py="http://genshi.edgewall.org/"
+        xmlns:xi="http://www.w3.org/2001/XInclude">
+        <div class="control-group">
+          <label class="control-label" for="endpointenabled">RDF store ${'enabled' if c.storeconfigform.endpoint_enabled else 'disabled'} </label>
+          <div class="controls">
+            <input id="${'disable' if c.storeconfigform.endpoint_enabled else 'enable'}" class="btn btn-primary" name="${'disable' if c.storeconfigform.endpoint_enabled else 'enable'}" type="submit" value="${'Disable' if c.storeconfigform.endpoint_enabled else 'Enable'}" />
+          </div>
+        </div>
+      </form>
+      <h2>Crawler status</h2>
+      <p>Running...</p>
+    </div>
+  </div>
+
+  <xi:include href="layout.html" />
+</html>

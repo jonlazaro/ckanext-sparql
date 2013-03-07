@@ -1,0 +1,73 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+<py:if test="c.form_error != ''">
+  <div class="alert alert-error error-explanation">
+  <h2>Errors in form</h2>
+    <p>${c.error_message}</p>
+  </div>
+</py:if>
+
+  <h4>Basic information:</h4>
+  <div class="control-group">
+    <label class="control-label" for="name">Name</label>
+    <div class="controls">
+      <input id="name" name="name" type="text" value="${c.storeconfigform.endpoint_name}" />
+    </div>
+  </div>
+  <div class="control-group ${'error' if c.form_error == 'sparqlurl' else ''}">
+    <label class="control-label" for="sparqlurl">SPARQL endpoint</label>
+    <div class="controls">
+      <input id="sparqlurl" name="sparqlurl" type="text" value="${c.storeconfigform.endpoint_sparqlurl}" />
+    </div>
+  </div>
+  <div class="control-group ${'error' if c.form_error == 'sparulurl' else ''}">
+    <label class="control-label" for="sparulurl">SPARQL/Update endpoint</label>
+    <div class="controls">
+      <input id="sparulurl" name="sparulurl" type="text" value="${c.storeconfigform.endpoint_sparulurl}" />
+      <p id="license-instructions">It can be the same as SPARQL endpoint URL</p>
+    </div>
+  </div>
+  <div class="control-group ${'error' if c.form_error == 'graph' else ''}">
+    <label class="control-label" for="graph">Graph name</label>
+    <div class="controls">
+      <input id="graph" name="graph" type="text" value="${c.storeconfigform.endpoint_graph}" />
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="endpointtype">RDF store type</label>
+    <div class="controls">
+      <select id="endpointtype" name="endpointtype">
+        <py:for each="value, text in c.endpointtypes.items()">
+          <option value="${value}" selected="${'selected' if c.storeconfigform.endpoint_endpointtype == value else None}">${text}</option>
+        </py:for>
+      </select>
+      <!--select id="endpointtype" name="endpointtype">
+          <option value="virtuoso">OpenLink Virtuoso</option>
+          <option value="sparql11" selected="">SPARQL 1.1 Endpoint</option>
+      </select-->
+    </div>
+  </div>
+  <h4>Authentication (if required):</h4>
+  <div class="control-group">
+    <label class="control-label" for="authrequired">Authentication required</label>
+    <div class="controls">
+      <input type="checkbox" name="authrequired" checked="${'checked' if c.storeconfigform.endpoint_authrequired else None}"/>
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="user">Username</label>
+    <div class="controls">
+      <input id="user" name="user" type="text" value="${c.storeconfigform.endpoint_user}" />
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="passwd">Password</label>
+    <div class="controls">
+      <input id="passwd" name="passwd" type="password" value="${c.storeconfigform.endpoint_passwd}" />
+    </div>
+  </div>
+  
+</html>

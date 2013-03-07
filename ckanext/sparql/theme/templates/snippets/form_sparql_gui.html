@@ -1,0 +1,22 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:if test="c.form_error != ''">
+    <div class="alert alert-error error-explanation">
+    <h2>Errors in form</h2>
+      <p>${c.error_message}</p>
+    </div>
+  </py:if>
+
+  <textarea rows="13" class="span8">SELECT * WHERE { ?s ?p ?o } LIMIT 10</textarea>
+  <p>Result format: 
+    <select id="resultformat" name="resultformat">
+      <py:for each="value, text in c.resultformats.items()">
+        <option value="${value}" selected="${'selected' if value == 'html' else None}">${text}</option>
+      </py:for>
+    </select>
+  </p>
+  <input id="runquery" class="btn btn-primary" name="runquery" type="submit" value="Run query" />
+</html>
