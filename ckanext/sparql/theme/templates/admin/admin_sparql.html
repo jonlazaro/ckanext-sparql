@@ -7,6 +7,15 @@
   <py:def function="page_heading">Administration - SPARQL Configuration</py:def>
 
   <div py:match="content">
+    <div class="alert" py:if="c.warningmessage != None">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      ${c.warningmessage}
+    </div>
+    <div class="alert alert-success" py:if="c.successmessage != None">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      ${c.successmessage}
+    </div>
+
     <h2>RDF Store configuration</h2>
     <form 
       id="admin-rdfstore-configuration" 

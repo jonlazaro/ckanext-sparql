@@ -2,18 +2,18 @@ from sqlalchemy import types, Column, Table, MetaData, UnicodeText, create_engin
 import vdm.sqlalchemy
 from sqlalchemy.orm import mapper, relationship
 from ckan.model.types import make_uuid
-from ckan.model.package import Package, package_table
+from ckan.model.package import Package, package_table, PACKAGE_NAME_MAX_LENGTH
 
 import sqlalchemy
 
 metadata = MetaData()
 
 packageendpoint_table = Table('packageendpoint', metadata,
-    Column('package_id', UnicodeText, ForeignKey(package_table.c.id), primary_key=True),
-    Column('endpoint_id', UnicodeText, ForeignKey('sparqlenpoint.id'), primary_key=True)
+    Column('package_name', UnicodeText(PACKAGE_NAME_MAX_LENGTH), ForeignKey(package_table.c.name), primary_key=True),
+    Column('endpoint_id', UnicodeText, ForeignKey('sparqlendpoint.id'), primary_key=True)
 )
 
-sparqlenpoint_table = Table('sparqlenpoint', metadata,
+sparqlendpoint_table = Table('sparqlendpoint', metadata,
         Column('id', UnicodeText, primary_key=True, default=make_uuid),
         Column('name', UnicodeText),
         Column('sparqlurl', UnicodeText),
@@ -28,7 +28,7 @@ sparqlenpoint_table = Table('sparqlenpoint', metadata,
         Column('isenabled', Boolean, unique=False, default=True)
 )
 
-class SparqlEnpoint(object):
+class SparqlEndpoint(object):
     def __init__(self, *initial_data, **kwargs):
         for dictionary in initial_data:
             for key in dictionary:
@@ -36,7 +36,7 @@ class SparqlEnpoint(object):
         for key in kwargs:
             setattr(self, key, kwargs[key])
 
-mapper(SparqlEnpoint, sparqlenpoint_table, properties={
+mapper(SparqlEndpoint, sparqlendpoint_table, properties={
     'packages' : relationship(Package, secondary=packageendpoint_table, backref='endpoints')
     })
 

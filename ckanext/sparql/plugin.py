@@ -2,13 +2,15 @@
 
 from ckan.plugins import SingletonPlugin, IGenshiStreamFilter, implements, IConfigurer, IRoutes
 from logging import getLogger
-from pylons import request
+from pylons import request, tmpl_context as c
 from genshi.input import HTML
 from genshi.filters.transform import Transformer
 import ckan.model as model
 import os
+from ckan.lib.helpers import check_access
 
-from sparql_model.model import SparqlEnpoint
+from sparql_model.model import SparqlEndpoint
+from ckan.model.package import Package
 
 log = getLogger(__name__)
 
@@ -45,10 +47,49 @@ class SPARQLExtension(SingletonPlugin):
                     </li>'''
                 ))
 
-        if model.Session.query(SparqlEnpoint).filter_by(isglobal=True, isenabled=True).first():
+        if model.Session.query(SparqlEndpoint).filter_by(isglobal=True, isenabled=True).first():
             stream = stream | Transformer('//div[@id="mainmenu"]').append(HTML(
                     '''<a class="" href="/sparql">SPARQL Endpoint</a>'''
                 ))
+   
+        try:
+            packageid = c.pkg.id
+        except:
+            packageid = None
+
+        if packageid:
+            if routes.get('controller') in ('package', 'related', 'ckanext.sparql.controller:SparqlPackageController'):
+                sparqlendpoint = model.Session.query(SparqlEndpoint).filter(SparqlEndpoint.packages.any(Package.name == routes.get('id'))).first()
+                htmlstr = ''
+                isactive = 'active' if routes.get('controller') == 'ckanext.sparql.controller:SparqlPackageController' else ''
+                if sparqlendpoint and sparqlendpoint.isenabled:
+                        htmlstr += '''<li class="dropdown ''' + isactive + '''">
+                                      <a class="dropdown-toggle" data-toggle="dropdown" href="#"><img src="/icons/rdf_flyer.24" height="16px" width="16px" alt="None" class="inline-icon ">SPARQL Endpoint<b class="caret"></b></a>
+                                      <div class="dropdown-appears">
+                                        <ul class="dropdown-menu">
+                                          <li>
+                                            <a href="/dataset/%s/sparql"><img src="/images/icons/package.png" height="16px" width="16px" alt="None" class="inline-icon "> Query SPARQL Endpoint</a>
+                                          </li>''' % routes.get('id')
+                        
+                        if check_access('package_update', {'id':packageid}):
+                            htmlstr += '''<li>
+                                    <a href="/dataset/%s/edit/sparql"><img src="/images/icons/package_edit.png" height="16px" width="16px" alt="None" class="inline-icon "> Configure SPARQL Endpoint</a>
+                                  </li>''' % routes.get('id')
+                        htmlstr += '''</ul>
+                                  </div>
+                                </li>'''
+                elif check_access('package_update', {'id':packageid}):
+                    htmlstr += '''<li class="dropdown ''' + isactive + '''">
+                              <a class="dropdown-toggle" data-toggle="dropdown" href="#"><img src="/icons/rdf_flyer.24" height="16px" width="16px" alt="None" class="inline-icon ">SPARQL Endpoint<b class="caret"></b></a>
+                              <div class="dropdown-appears">
+                                <ul class="dropdown-menu">
+                                  <li>
+                                    <a href="/dataset/%s/edit/sparql"><img src="/images/icons/package_edit.png" height="16px" width="16px" alt="None" class="inline-icon "> Configure SPARQL Endpoint</a>
+                                  </li>
+                                </ul>
+                               </div>
+                               </li>''' % routes.get('id')
+                stream = stream | Transformer('//ul[@class="nav nav-pills"]').append(HTML(htmlstr))
 
         return stream
 
@@ -59,6 +100,14 @@ class SPARQLExtension(SingletonPlugin):
 
         map.connect('/sparql',
             controller='ckanext.sparql.controller:SparqlGuiController',
+            action='sparql_endpoint')
+
+        map.connect('/dataset/{id}/edit/sparql',
+            controller='ckanext.sparql.controller:SparqlPackageController',
+            action='sparql_config')
+
+        map.connect('/dataset/{id}/sparql',
+            controller='ckanext.sparql.controller:SparqlPackageController',
             action='sparql_endpoint')
 
         return map

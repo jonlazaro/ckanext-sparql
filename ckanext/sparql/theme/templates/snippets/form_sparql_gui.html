@@ -3,7 +3,7 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
 
-  <py:if test="c.form_error != ''">
+  <py:if test="c.error_message != ''">
     <div class="alert alert-error error-explanation">
     <h2>Errors in form</h2>
       <p>${c.error_message}</p>
@@ -19,4 +19,29 @@
     </select>
   </p>
   <input id="runquery" class="btn btn-primary" name="runquery" type="submit" value="Run query" />
+  <br /><br />
+  <div id="query-results" py:if="c.queryresults">
+      <h3>Query results:</h3>
+      <p>*View limited to 50 results</p>
+      <table class="table table-striped table-bordered table-condensed">
+          <py:for each="i, triple in enumerate(c.queryresults)">
+              <py:choose test="">
+                  <py:when test="i == 0">
+                      <thead>
+                          <py:for each="t in triple">
+                              <th>${t}</th>
+                          </py:for>
+                      </thead>
+                  </py:when>
+                  <py:otherwise>
+                      <tbody>
+                          <py:for each="t in triple">
+                              <td>${t}</td>
+                          </py:for>
+                      </tbody>
+                  </py:otherwise>
+              </py:choose>
+          </py:for>
+      </table>
+  </div>
 </html>

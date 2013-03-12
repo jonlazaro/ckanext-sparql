@@ -1,0 +1,87 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">Edit SPARQL Enpoint: ${c.pkg.name}</py:def>
+  <py:def function="page_heading">Edit SPARQL Endpoint: ${c.pkg.name}</py:def>
+
+  <div py:match="content">
+    <div class="tabbable tabs-left">
+      <ul class="nav nav-tabs">
+        <li class="active"><a data-toggle="tab" href="#rdf-store">RDF Store configuration</a></li>
+        <li><a data-toggle="tab" href="#update-data">Upload RDF data</a></li>
+      </ul>
+      <div class="tab-content">
+
+        <div class="tab-pane active" id="rdf-store">
+          <form 
+            id="admin-rdfstore-configuration" 
+            action="/dataset/${c.pkg.name}/edit/sparql" 
+            method="post"
+            class="form-horizontal"
+            xmlns:i18n="http://genshi.edgewall.org/i18n"
+            xmlns:py="http://genshi.edgewall.org/"
+            xmlns:xi="http://www.w3.org/2001/XInclude">
+
+            <div class="control-group" py:if="c.globalendpoint">
+              <h4>Select endpoint</h4>
+              <label class="control-label" for="globalendpoint">Available endpoints</label>
+              <div class="controls">
+                <select id="globalendpoint" name="globalendpoint" onchange="showCustomEndpointDiv()">
+                  <option value="global" selected="${'selected' if c.globalendpointselected else None}">Global endpoint</option>
+                  <option value="custom" selected="${'selected' if not c.globalendpointselected else None}">Custom endpoint</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="customendpoint" style="${'display: none;' if (c.globalendpoint and c.globalendpointselected) else ''}">
+              <xi:include href="../snippets/form_rdfstore.html" />
+            </div>
+
+            <div class="form-actions">
+              <input id="save" class="btn btn-primary" name="save" type="submit" value="Save Changes" />
+            </div>
+          </form>
+
+          <div py:if="c.storeconfigform['endpoint_enabled'] != None and not c.globalendpointselected">
+            <h2>SPARQL Endpoint status</h2>
+            <form 
+              id="admin-rdfstore-enabledisable" 
+              action="/dataset/${c.pkg.name}/edit/sparql"
+              method="post"
+              class="form-horizontal"
+              xmlns:i18n="http://genshi.edgewall.org/i18n"
+              xmlns:py="http://genshi.edgewall.org/"
+              xmlns:xi="http://www.w3.org/2001/XInclude">
+              <div class="control-group">
+                <label class="control-label" for="endpointenabled">SPARQL endpoint ${'enabled' if c.storeconfigform.endpoint_enabled else 'disabled'} </label>
+                <div class="controls">
+                  <input id="${'disable' if c.storeconfigform.endpoint_enabled else 'enable'}" class="btn btn-primary" name="${'disable' if c.storeconfigform.endpoint_enabled else 'enable'}" type="submit" value="${'Disable' if c.storeconfigform.endpoint_enabled else 'Enable'}" />
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="tab-pane" id="update-data">
+          weheeee
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+      function showCustomEndpointDiv() {
+        var endpointSelect = document.getElementById('globalendpoint');
+        var selectedValue = endpointSelect.options[endpointSelect.selectedIndex].value;
+        var customEndpointDiv = document.getElementById('customendpoint');
+        if (selectedValue == 'global') {
+          customEndpointDiv.style.display = 'none';
+        } else {
+          customEndpointDiv.style.display = 'block';
+        }
+      }
+    </script>
+  </div>
+
+  <xi:include href="layout.html" />
+</html>

@@ -3,13 +3,13 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
 
-    <py:def function="page_title">SPARQL Enpoint</py:def>
-    <py:def function="page_heading">SPARQL Endpoint</py:def>
+    <py:def function="page_title">SPARQL Enpoint: ${c.pkg.name}</py:def>
+    <py:def function="page_heading">SPARQL Endpoint: ${c.pkg.name}</py:def>
 
     <div py:match="content">
           <form 
             id="sparql-runquery" 
-            action="/sparql" 
+            action="/dataset/${c.pkg.name}/sparql" 
             method="post"
             xmlns:i18n="http://genshi.edgewall.org/i18n"
             xmlns:py="http://genshi.edgewall.org/"
@@ -22,10 +22,10 @@
         <li class="widget-container boxed widget_text">
             <h3>SPARQL queries</h3>
             <p>
-                You can query over metadata about every dataset in dataset with SPARQL Query Language. The specification of this language is available <a href="http://www.w3.org/TR/rdf-sparql-query/" target="_blank">here</a>.
+                You can query data of "${c.pkg.name}" dataset with SPARQL Query Language. The specification of this language is available <a href="http://www.w3.org/TR/rdf-sparql-query/" target="_blank">here</a>.
             </p>
         </li>
     </div>
     
-    <xi:include href="../layout.html" />
+    <xi:include href="layout.html" />
 </html>
