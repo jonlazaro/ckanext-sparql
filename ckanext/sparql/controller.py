@@ -95,11 +95,14 @@ class SparqlPackageController(PackageController):
 
         c.endpointtypes = ENDPOINT_TYPES
 
+        c.noendpoint = False if self.packageendpoint else True
+
         if 'save' in request.params:
             # It's POST call after form
             packagedb = model.Session.query(Package).filter_by(name=id).first()
 
-            if 'globalendpoint' in request.params.keys() and request.params['globalendpoint'] == 'global' and globalendpoint:
+            # Global endpoint selected
+            if request.params['globalendpoint'] == 'global' and globalendpoint:
                 if not c.globalendpointselected:
                     # It's not already selected
                     log.info('[' + id + '] Selecting global as endpoint...')
@@ -114,6 +117,26 @@ class SparqlPackageController(PackageController):
                     log.info('[' + id + '] No changes, global was already selected')
                     c.warningmessage = "No changes to do, global was already selected"
                 c.globalendpointselected = True
+
+            # No endpoint selected
+            elif request.params['globalendpoint'] == 'noendpoint':
+                if self.packageendpoint:
+                    # There is a endpoint selected, we have to remove it from list
+                    log.info('[' + id + '] Removing any endpoint from package endpoints list...')
+                    packagedb.endpoints = []
+                    if not c.globalendpointselected:
+                        # It is not globalendpoint so we remove it
+                        log.info('[' + id + '] Removing existing -custom- endpoint...')
+                        model.Session.delete(self.packageendpoint)
+                    model.Session.commit()
+                    c.successmessage = "Endpoint succesfully deleted"
+                else:
+                    # There was already 'none' selected
+                    log.info('[' + id + '] No changes, no endpoint was selected')
+                    c.warningmessage = "No changes to do, no endpoint was selected"
+                c.noendpoint = True
+
+            # Custom endpoint selected
             else:
                 errors = False
                 for field, value in request.params.items():
@@ -156,6 +179,7 @@ class SparqlPackageController(PackageController):
                         c.successmessage = "Endpoint succesfully created"
                     model.Session.commit()
                 c.globalendpointselected = False
+                c.noendpoint = False
 
         elif 'enable' in request.params and not c.globalendpointselected:
             if self.packageendpoint:

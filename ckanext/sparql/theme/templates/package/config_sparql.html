@@ -15,6 +15,14 @@
       <div class="tab-content">
 
         <div class="tab-pane active" id="rdf-store">
+          <div class="alert" py:if="c.warningmessage != None">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            ${c.warningmessage}
+          </div>
+          <div class="alert alert-success" py:if="c.successmessage != None">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            ${c.successmessage}
+          </div>
           <form 
             id="admin-rdfstore-configuration" 
             action="/dataset/${c.pkg.name}/edit/sparql" 
@@ -24,18 +32,19 @@
             xmlns:py="http://genshi.edgewall.org/"
             xmlns:xi="http://www.w3.org/2001/XInclude">
 
-            <div class="control-group" py:if="c.globalendpoint">
+            <div class="control-group">
               <h4>Select endpoint</h4>
               <label class="control-label" for="globalendpoint">Available endpoints</label>
               <div class="controls">
                 <select id="globalendpoint" name="globalendpoint" onchange="showCustomEndpointDiv()">
-                  <option value="global" selected="${'selected' if c.globalendpointselected else None}">Global endpoint</option>
-                  <option value="custom" selected="${'selected' if not c.globalendpointselected else None}">Custom endpoint</option>
+                  <option value="global" selected="${'selected' if c.globalendpointselected else None}" py:if="c.globalendpoint">Global endpoint</option>
+                  <option value="noendpoint" selected="${'selected' if c.noendpoint else None}">None</option>
+                  <option value="custom" selected="${'selected' if ((not c.globalendpointselected and not c.noendpoint) or c.form_error != '') else None}">Custom endpoint</option>
                 </select>
               </div>
             </div>
 
-            <div id="customendpoint" style="${'display: none;' if (c.globalendpoint and c.globalendpointselected) else ''}">
+            <div id="customendpoint" style="${'display: none;' if ((c.globalendpoint and c.globalendpointselected) or c.noendpoint) else ''}">
               <xi:include href="../snippets/form_rdfstore.html" />
             </div>
 
@@ -44,7 +53,7 @@
             </div>
           </form>
 
-          <div py:if="c.storeconfigform['endpoint_enabled'] != None and not c.globalendpointselected">
+          <div id="endpointstatus" py:if="c.storeconfigform['endpoint_enabled'] != None and not c.globalendpointselected and not c.noendpoint">
             <h2>SPARQL Endpoint status</h2>
             <form 
               id="admin-rdfstore-enabledisable" 
@@ -74,10 +83,13 @@
         var endpointSelect = document.getElementById('globalendpoint');
         var selectedValue = endpointSelect.options[endpointSelect.selectedIndex].value;
         var customEndpointDiv = document.getElementById('customendpoint');
-        if (selectedValue == 'global') {
+        var endpointStatusDiv = document.getElementById('endpointstatus');
+        if (selectedValue == 'global' || selectedValue == 'noendpoint') {
           customEndpointDiv.style.display = 'none';
+          endpointStatusDiv.style.display = 'none';
         } else {
           customEndpointDiv.style.display = 'block';
+          endpointStatusDiv.style.display = 'block';
         }
       }
     </script>
