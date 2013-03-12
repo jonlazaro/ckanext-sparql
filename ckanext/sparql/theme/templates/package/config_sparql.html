@@ -74,7 +74,23 @@
         </div>
 
         <div class="tab-pane" id="update-data">
-          weheeee
+          <form 
+            id="admin-rdfstore-configuration" 
+            action="/dataset/${c.pkg.name}/uploadrdf"
+            method="post"
+            enctype="multipart/form-data"
+            class="form-horizontal"
+            xmlns:i18n="http://genshi.edgewall.org/i18n"
+            xmlns:py="http://genshi.edgewall.org/"
+            xmlns:xi="http://www.w3.org/2001/XInclude">
+
+            <h4>Upload RDF data</h4>
+            <textarea rows="13" class="span6" name="rdf_text" id="rdf_text"></textarea>
+            <br /><br />
+            <p>Or upload a file</p>
+            <p><input type="file" name="rdf_file" id="rdf_file" /></p>
+            <input id="save" class="btn btn-primary" name="save" type="submit" value="Upload data" />
+          </form>
         </div>
       </div>
     </div>
