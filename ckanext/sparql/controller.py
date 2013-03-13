@@ -18,6 +18,7 @@ import os
 log = getLogger(__name__)
 
 ENDPOINT_TYPES = {'virtuoso': 'OpenLink Virtuoso', 'sparql11': 'SPARQL 1.1 Endpoint'}
+RESULT_FORMATS = {'html': 'HTML'}
 
 class SparqlPackageController(PackageController):
     def __before__(self, action, **params):
@@ -36,14 +37,14 @@ class SparqlPackageController(PackageController):
         package_info = get_action('package_show')(context, {'id': c.pkg.id})
 
 
-        c.resultformats = {'html': 'HTML'}
+        c.resultformats = RESULT_FORMATS
 
         if 'runquery' in request.params:
             errors = False
             #g = rdflib.ConjunctiveGraph('SPARQLStore')
             #g.open("
             # Run query
-            
+            # [TODO] Run query with rdflib            
             if errors:
                 c.error_message = 'Query malformed'
             else:
@@ -63,6 +64,10 @@ class SparqlPackageController(PackageController):
 
         c.warningmessage = None
         c.successmessage = None
+        c.uploadwarningmessage = None
+        c.uploaderrormessage = None
+        c.uploadsuccessmessage = None
+
         c.globalendpointselected = False
         if self.packageendpoint and self.packageendpoint.isglobal:
             if self.packageendpoint.isdataallowed and self.packageendpoint.isenabled:
@@ -117,6 +122,7 @@ class SparqlPackageController(PackageController):
                     log.info('[' + id + '] No changes, global was already selected')
                     c.warningmessage = "No changes to do, global was already selected"
                 c.globalendpointselected = True
+                c.noendpoint = False
 
             # No endpoint selected
             elif request.params['globalendpoint'] == 'noendpoint':
@@ -197,7 +203,18 @@ class SparqlPackageController(PackageController):
                 model.Session.commit()
                 c.successmessage = "Endpoint succesfully disabled"
 
+        elif 'upload_rdf' in request.params:
+            if 'rdf_file' in request.params and request.params['rdf_file'] is not u'':
+                rdf_file = request.params['rdf_file'].file
+                #rdf_file.read()
+                # [TODO] Call celery to validate and upload data
+            elif 'rdf_text' in request.params and request.params['rdf_text'] is not u'':
+                # [TODO] Call celery to validate and upload data
+            else:
+                c.uploadwarningmessage = "No RDF data to upload"
+
         return render('package/config_sparql.html')
+        # [TODO] If endpoint created or updated, check if valid with celery query and update test.
 
 
 class SparqlGuiController(BaseController):
@@ -210,14 +227,14 @@ class SparqlGuiController(BaseController):
 
     def sparql_endpoint(self):
         print self.mainendpoint.sparqlurl
-        c.resultformats = {'html': 'HTML'}
+        c.resultformats = RESULT_FORMATS
 
         if 'runquery' in request.params:
             errors = False
             #g = rdflib.ConjunctiveGraph('SPARQLStore')
             #g.open("
             # Run query
-            
+            # [TODO] Run query with rdflib
             if errors:
                 c.error_message = 'Query malformed'
             else:
@@ -318,3 +335,4 @@ class SparqlAdminController(BaseController):
                 c.successmessage = "Global endpoint succesfully disabled"
 
         return render('admin/admin_sparql.html')
+        # [TODO] If endpoint created or updated, check if valid with celery query and update test.

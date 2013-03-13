@@ -106,6 +106,10 @@ class SPARQLExtension(SingletonPlugin):
             controller='ckanext.sparql.controller:SparqlPackageController',
             action='sparql_config')
 
+        map.connect('/dataset/{id}/uploadrdf',
+            controller='ckanext.sparql.controller:SparqlPackageController',
+            action='sparql_config')
+
         map.connect('/dataset/{id}/sparql',
             controller='ckanext.sparql.controller:SparqlPackageController',
             action='sparql_endpoint')

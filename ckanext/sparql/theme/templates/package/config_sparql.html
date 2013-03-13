@@ -9,12 +9,12 @@
   <div py:match="content">
     <div class="tabbable tabs-left">
       <ul class="nav nav-tabs">
-        <li class="active"><a data-toggle="tab" href="#rdf-store">RDF Store configuration</a></li>
-        <li><a data-toggle="tab" href="#update-data">Upload RDF data</a></li>
+        <li class="${'active' if (not c.uploadwarningmessage and not c.uploadsuccessmessage and not c.uploaderrormessage) else ''}"><a data-toggle="tab" href="#rdf-store">RDF Store configuration</a></li>
+        <li class="${'active' if (c.uploadwarningmessage or c.uploadsuccessmessage or c.uploaderrormessage) else ''}" py:if="not c.noendpoint"><a data-toggle="tab" href="#update-data">Upload RDF data</a></li>
       </ul>
       <div class="tab-content">
 
-        <div class="tab-pane active" id="rdf-store">
+        <div class="tab-pane ${'active' if (not c.uploadwarningmessage and not c.uploadsuccessmessage and not c.uploaderrormessage) else ''}" id="rdf-store">
           <div class="alert" py:if="c.warningmessage != None">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
             ${c.warningmessage}
@@ -73,7 +73,7 @@
           </div>
         </div>
 
-        <div class="tab-pane" id="update-data">
+        <div class="tab-pane ${'active' if (c.uploadwarningmessage or c.uploadsuccessmessage or c.uploaderrormessage) else ''}" id="update-data" py:if="not c.noendpoint">
           <form 
             id="admin-rdfstore-configuration" 
             action="/dataset/${c.pkg.name}/uploadrdf"
@@ -84,12 +84,25 @@
             xmlns:py="http://genshi.edgewall.org/"
             xmlns:xi="http://www.w3.org/2001/XInclude">
 
+            <div class="alert" py:if="c.uploadwarningmessage != None">
+              <button type="button" class="close" data-dismiss="alert">&times;</button>
+              ${c.uploadwarningmessage}
+            </div>
+            <div class="alert alert-success" py:if="c.uploadsuccessmessage != None">
+              <button type="button" class="close" data-dismiss="alert">&times;</button>
+              ${c.uploadsuccessmessage}
+            </div>
+            <div class="alert alert-error" py:if="c.uploaderrormessage != None">
+              <button type="button" class="close" data-dismiss="alert">&times;</button>
+              ${c.uploaderrormessage}
+            </div>
+
             <h4>Upload RDF data</h4>
             <textarea rows="13" class="span6" name="rdf_text" id="rdf_text"></textarea>
             <br /><br />
             <p>Or upload a file</p>
             <p><input type="file" name="rdf_file" id="rdf_file" /></p>
-            <input id="save" class="btn btn-primary" name="save" type="submit" value="Upload data" />
+            <input id="upload_rdf" class="btn btn-primary" name="upload_rdf" type="submit" value="Upload data" />
           </form>
         </div>
       </div>
