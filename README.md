@@ -16,7 +16,7 @@ Tested with CKAN 1.8
 
     ckan.plugins = stats sparql
     
-**Install CKAN libraries**
+**Check that CKAN libraries are installed**
 
     cd src/ckan
     python setup.py install
