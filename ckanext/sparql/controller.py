@@ -69,6 +69,7 @@ class SparqlPackageController(PackageController):
         c.uploadsuccessmessage = None
 
         c.globalendpointselected = False
+        nowdisabled = False
         if self.packageendpoint and self.packageendpoint.isglobal:
             if self.packageendpoint.isdataallowed and self.packageendpoint.isenabled:
                 globalendpoint = self.packageendpoint
@@ -76,7 +77,7 @@ class SparqlPackageController(PackageController):
                 c.globalendpointselected = True
             else:
                 c.warningmessage = "Sorry but global endpoint is now disabled, you can setup a new endpoint in this form."
-                pass
+                nowdisabled = True
         else:
             globalendpoint = model.Session.query(SparqlEndpoint).filter_by(isglobal=True, isenabled=True, isdataallowed=True).first()
             c.globalendpoint = True if globalendpoint else False
@@ -88,19 +89,21 @@ class SparqlPackageController(PackageController):
 
         # Check if there is any endpoint already selected, and don't show anything if it doesn't or if it is global endpoint
         # (Because it's not allowed to update global endpoint in this view)
-        c.storeconfigform['endpoint_name'] = self.packageendpoint.name if (self.packageendpoint and not c.globalendpointselected) else id
-        c.storeconfigform['endpoint_sparqlurl'] = self.packageendpoint.sparqlurl if (self.packageendpoint and not c.globalendpointselected) else ''
-        c.storeconfigform['endpoint_sparulurl'] = self.packageendpoint.sparulurl if (self.packageendpoint and not c.globalendpointselected) else ''
-        c.storeconfigform['endpoint_graph'] = self.packageendpoint.graph if (self.packageendpoint and not c.globalendpointselected) else request.url.replace('/edit/sparql', '')
-        c.storeconfigform['endpoint_endpointtype'] = self.packageendpoint.storetype if (self.packageendpoint and not c.globalendpointselected) else 'virtuoso'
-        c.storeconfigform['endpoint_user'] = self.packageendpoint.username if (self.packageendpoint and not c.globalendpointselected) else None
-        c.storeconfigform['endpoint_passwd'] = self.packageendpoint.passwd if (self.packageendpoint and not c.globalendpointselected) else None
-        c.storeconfigform['endpoint_enabled'] = self.packageendpoint.isenabled if (self.packageendpoint and not c.globalendpointselected) else None
-        c.storeconfigform['endpoint_authrequired'] = self.packageendpoint.isauthrequired if (self.packageendpoint and not c.globalendpointselected) else False
+        c.storeconfigform['endpoint_name'] = self.packageendpoint.name if (self.packageendpoint and not c.globalendpointselected and not nowdisabled) else id
+        c.storeconfigform['endpoint_sparqlurl'] = self.packageendpoint.sparqlurl if (self.packageendpoint and not c.globalendpointselected and not nowdisabled) else ''
+        c.storeconfigform['endpoint_sparulurl'] = self.packageendpoint.sparulurl if (self.packageendpoint and not c.globalendpointselected and not nowdisabled) else ''
+        c.storeconfigform['endpoint_graph'] = self.packageendpoint.graph if (self.packageendpoint and not c.globalendpointselected and not nowdisabled) else request.url.replace('/edit/sparql', '')
+        c.storeconfigform['endpoint_endpointtype'] = self.packageendpoint.storetype if (self.packageendpoint and not c.globalendpointselected and not nowdisabled) else 'virtuoso'
+        c.storeconfigform['endpoint_user'] = self.packageendpoint.username if (self.packageendpoint and not c.globalendpointselected and not nowdisabled) else None
+        c.storeconfigform['endpoint_passwd'] = self.packageendpoint.passwd if (self.packageendpoint and not c.globalendpointselected and not nowdisabled) else None
+        c.storeconfigform['endpoint_enabled'] = self.packageendpoint.isenabled if (self.packageendpoint and not c.globalendpointselected and not nowdisabled) else None
+        c.storeconfigform['endpoint_authrequired'] = self.packageendpoint.isauthrequired if (self.packageendpoint and not c.globalendpointselected and not nowdisabled) else False
 
         c.endpointtypes = ENDPOINT_TYPES
 
         c.noendpoint = False if self.packageendpoint else True
+
+        print 'DB', self.packageendpoint.isauthrequired
 
         if 'save' in request.params:
             # It's POST call after form
@@ -144,6 +147,7 @@ class SparqlPackageController(PackageController):
 
             # Custom endpoint selected
             else:
+                print 'POST', c.storeconfigform['endpoint_authrequired']
                 errors = False
                 for field, value in request.params.items():
                     if not value and field not in ['user', 'passwd', 'globalendpoint']:
@@ -209,7 +213,7 @@ class SparqlPackageController(PackageController):
                 #rdf_file.read()
                 # [TODO] Call celery to validate and upload data
             elif 'rdf_text' in request.params and request.params['rdf_text'] is not u'':
-                # [TODO] Call celery to validate and upload data
+                pass # [TODO] Call celery to validate and upload data
             else:
                 c.uploadwarningmessage = "No RDF data to upload"
 
@@ -226,7 +230,6 @@ class SparqlGuiController(BaseController):
             abort(404)
 
     def sparql_endpoint(self):
-        print self.mainendpoint.sparqlurl
         c.resultformats = RESULT_FORMATS
 
         if 'runquery' in request.params:
