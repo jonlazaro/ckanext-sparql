@@ -9,6 +9,8 @@ from ckan.controllers.package import PackageController
 from ckan.model.package import Package
 from pylons import url
 
+from utils import execute_query
+
 import ckan.authz
 import ckan.model as model
 import ConfigParser
@@ -18,7 +20,7 @@ import os
 log = getLogger(__name__)
 
 ENDPOINT_TYPES = {'virtuoso': 'OpenLink Virtuoso', 'sparql11': 'SPARQL 1.1 Endpoint'}
-RESULT_FORMATS = {'html': 'HTML'}
+RESULT_FORMATS = {'html': 'HTML', 'json': 'JSON', 'csv': 'CSV', 'rdf': 'RDF'}
 
 class SparqlPackageController(PackageController):
     def __before__(self, action, **params):
@@ -38,17 +40,17 @@ class SparqlPackageController(PackageController):
 
 
         c.resultformats = RESULT_FORMATS
+        c.selectedformat = 'html'
 
         if 'runquery' in request.params:
-            errors = False
-            #g = rdflib.ConjunctiveGraph('SPARQLStore')
-            #g.open("
-            # Run query
-            # [TODO] Run query with rdflib            
+            query_results, errors, error_message = execute_query(request.params['query'], request.params['resultformat'], self.packageendpoint, request.url.replace('/sparql', ''))
+            c.query = request.params['query']
+            c.selectedformat = request.params['resultformat']
+
             if errors:
-                c.error_message = 'Query malformed'
+                c.error_message = error_message
             else:
-                c.queryresults = [('p', 'o'), (1, 2), (3, 4), (4,3)]
+                c.queryresults = query_results
 
         return render('package/sparql.html')
 
@@ -231,17 +233,17 @@ class SparqlGuiController(BaseController):
 
     def sparql_endpoint(self):
         c.resultformats = RESULT_FORMATS
+        c.selectedformat = 'html'
 
         if 'runquery' in request.params:
-            errors = False
-            #g = rdflib.ConjunctiveGraph('SPARQLStore')
-            #g.open("
-            # Run query
-            # [TODO] Run query with rdflib
+            query_results, errors, error_message = execute_query(request.params['query'], request.params['resultformat'], self.mainendpoint)
+            c.query = request.params['query']
+            c.selectedformat = request.params['resultformat']
+
             if errors:
-                c.error_message = 'Query malformed'
+                c.error_message = error_message
             else:
-                c.queryresults = [('p', 'o'), (1, 2), (3, 4), (4,3)]
+                c.queryresults = query_results
         
         return render('sparql/sparq_gui.html')
 

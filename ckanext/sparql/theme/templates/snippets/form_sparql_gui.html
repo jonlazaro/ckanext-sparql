@@ -10,11 +10,11 @@
     </div>
   </py:if>
 
-  <textarea rows="13" class="span8">SELECT * WHERE { ?s ?p ?o } LIMIT 10</textarea>
+  <textarea id="query" name="query" rows="13" class="span8">${'SELECT * WHERE { ?s ?p ?o } LIMIT 10' if not c.query else c.query}</textarea>
   <p>Result format: 
     <select id="resultformat" name="resultformat">
       <py:for each="value, text in c.resultformats.items()">
-        <option value="${value}" selected="${'selected' if value == 'html' else None}">${text}</option>
+        <option value="${value}" selected="${'selected' if value == c.selectedformat else None}">${text}</option>
       </py:for>
     </select>
   </p>
