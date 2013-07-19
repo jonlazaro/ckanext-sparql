@@ -2,39 +2,53 @@
 import requests
 
 def execute_query(query, resultformat, endpoint, graph=None):
-	errors = False
-	error_message = ''
-	query_results = []
+    errors = False
+    content_type = None
+    error_message = ''
+    query_results = []
 
-	index = query.lower().find('where')
+    index = query.lower().find('where')
 
-	# Insert graph info in SPARQL query
-	if endpoint.isglobal and graph:
-		query = query[:index] + ' FROM <' + str(graph) + '> ' + query[index:]
-	else:
-		query = query[:index] + ' FROM <' + str(endpoint.graph) + '> ' + query[index:]
+    # Insert graph info in SPARQL query
+    if endpoint.isglobal and graph:
+        query = query[:index] + ' FROM <' + str(graph) + '> ' + query[index:]
+    else:
+        query = query[:index] + ' FROM <' + str(endpoint.graph) + '> ' + query[index:]
 
-	resultformat = 'json' if resultformat == 'html' else resultformat
-	params = {'query': str(query), 'format': str(resultformat)}
-	r = requests.get(endpoint.sparqlurl, params=params)
+    result = 'json' if resultformat == 'html' else resultformat
+    params = {'query': str(query), 'format': str(result)}
+    
+    try:
+        r = requests.get(endpoint.sparqlurl, params=params)
+        r.raise_for_status()
+        if resultformat == 'html':
+            jsn = r.json()
+            variables = tuple(jsn['head']['vars'])
+            query_results.append(variables)
 
-	try:
-		jsn = r.json()
-		variables = tuple(jsn['head']['vars'])
-		query_results.append(variables)
+            for res in jsn['results']['bindings']:
+                val = []
+                for var in variables:
+                    val.append(res[var]['value'])
+                query_results.append(tuple(val))
+        else:
+            content_type = r.headers['Content-Type']
+            query_results = r.content
 
-		for res in jsn['results']['bindings']:
-			val = []
-			for var in variables:
-				val.append(res[var]['value'])
-			query_results.append(tuple(val))
+    except requests.exceptions.HTTPError as e:
+        errors = True
+        error_message = 'HTTP Error:', str(e)
 
+    except requests.exceptions.ConnectionError as e:
+        errors = True
+        error_message = 'Unable to connect to the endpoint'
 
-	except ValueError:
-		print r.content
+    except requests.exceptions.Timeout as e:
+        errors = True
+        error_message = 'Connexion timeout error'
 
-	#query_results = [('p', 'o'), (1, 2), (3, 4), (4, 3), (1, str(resultformat))]
-	if graph:
-		query_results.append((2, str(graph)))
+    except requests.exceptions.TooManyRedirects  as e:
+        errors = True
+        error_message = 'Too many redirects in connection'
 
-	return query_results, errors, error_message
+    return query_results, content_type, errors, error_message

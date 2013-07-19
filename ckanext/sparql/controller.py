@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*- 
 
-from ckan.lib.base import render, c, request, _
+from ckan.lib.base import render, c, request, response, _
 from logging import getLogger
 from ckan.lib.base import BaseController, abort
 from ckan.logic import get_action, NotFound
@@ -43,14 +43,18 @@ class SparqlPackageController(PackageController):
         c.selectedformat = 'html'
 
         if 'runquery' in request.params:
-            query_results, errors, error_message = execute_query(request.params['query'], request.params['resultformat'], self.packageendpoint, request.url.replace('/sparql', ''))
+            query_results, content_type, errors, error_message = execute_query(request.params['query'], request.params['resultformat'], self.packageendpoint, request.url.replace('/sparql', ''))
             c.query = request.params['query']
             c.selectedformat = request.params['resultformat']
 
             if errors:
                 c.error_message = error_message
             else:
-                c.queryresults = query_results
+                if content_type:
+                    response.headers['Content-type'] = content_type
+                    return query_results
+                else:
+                    c.queryresults = query_results
 
         return render('package/sparql.html')
 
@@ -236,14 +240,18 @@ class SparqlGuiController(BaseController):
         c.selectedformat = 'html'
 
         if 'runquery' in request.params:
-            query_results, errors, error_message = execute_query(request.params['query'], request.params['resultformat'], self.mainendpoint)
+            query_results, content_type, errors, error_message = execute_query(request.params['query'], request.params['resultformat'], self.mainendpoint)
             c.query = request.params['query']
             c.selectedformat = request.params['resultformat']
 
             if errors:
                 c.error_message = error_message
             else:
-                c.queryresults = query_results
+                if content_type:
+                    response.headers['Content-type'] = content_type
+                    return query_results
+                else:
+                    c.queryresults = query_results
         
         return render('sparql/sparq_gui.html')
 
