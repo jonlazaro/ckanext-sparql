@@ -109,7 +109,7 @@ class SparqlPackageController(PackageController):
 
         c.noendpoint = False if self.packageendpoint else True
 
-        print 'DB', self.packageendpoint.isauthrequired
+        #print 'DB', self.packageendpoint.isauthrequired
 
         if 'save' in request.params:
             # It's POST call after form
@@ -153,7 +153,7 @@ class SparqlPackageController(PackageController):
 
             # Custom endpoint selected
             else:
-                print 'POST', c.storeconfigform['endpoint_authrequired']
+                #print 'POST', c.storeconfigform['endpoint_authrequired']
                 errors = False
                 for field, value in request.params.items():
                     if not value and field not in ['user', 'passwd', 'globalendpoint']:
