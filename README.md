@@ -23,4 +23,4 @@ Tested with CKAN 1.8
 
 **Initialize new tables on CKAN database (Change user & pass)**
 
-    python ckanext/metadata/model/initDB.py
+    python ckanext/sparql/sparql_model/initDB.py
