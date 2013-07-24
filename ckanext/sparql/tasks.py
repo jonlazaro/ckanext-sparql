@@ -25,15 +25,18 @@ import ConfigParser
 config = ConfigParser.ConfigParser()
 config.read(os.environ['CKAN_CONFIG'])
 
-SITE_URL = config.get('app:main', 'ckan.site_url')
+MAIN_SECTION = 'app:main'
+PLUGIN_SECTION = 'plugin:sparql'
+
+SITE_URL = config.get(MAIN_SECTION, 'ckan.site_url')
 API_URL = urlparse.urljoin(SITE_URL, 'api/')
-API_KEY = config.get('plugin:sparql', 'api_key')
-CRON_HOUR = config.get('plugin:sparql', 'cron_hour')
-CRON_MINUTE = config.get('plugin:sparql', 'cron_minute')
+API_KEY = config.get(PLUGIN_SECTION, 'api_key')
+CRON_HOUR = config.get(PLUGIN_SECTION, 'cron_hour')
+CRON_MINUTE = config.get(PLUGIN_SECTION, 'cron_minute')
 DATASET_URL = urlparse.urljoin(SITE_URL, 'dataset/')
 
 try:
-    RUN_EVERY = config.get('plugin:metadata', 'run_every')
+    RUN_EVERY = config.get(PLUGIN_SECTION, 'run_every')
 except ConfigParser.NoOptionError:
     RUN_EVERY = None
 
