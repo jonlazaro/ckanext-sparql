@@ -47,8 +47,6 @@ else:
     print 'Launching periodic task at %s:%s' % (CRON_HOUR, CRON_MINUTE)
     periodicity = crontab(hour=CRON_HOUR, minute=CRON_MINUTE)
 
-
-
 def get_package_list():
     res = requests.post(
         API_URL + 'action/package_list', json.dumps({}),
@@ -65,8 +63,11 @@ def get_package_list():
 @periodic_task(run_every=periodicity)
 def dataset_rdf_crawler():
     g = Graph()
-    for package in get_package_list():
-        request = urllib2.Request(urlparse.urljoin(DATASET_URL, package), headers={"Accept" : "application/rdf+xml"})
-        g.parse(data=urllib2.urlopen(request).read())
-        
-        # [TODO] UPDATE SPARQL ENDPOINT WITH GRAPH!!!       
+    try:
+        for package in get_package_list():
+            request = urllib2.Request(urlparse.urljoin(DATASET_URL, package), headers={"Accept" : "application/rdf+xml"})
+            g.parse(data=urllib2.urlopen(request).read())
+            
+            # [TODO] UPDATE SPARQL ENDPOINT WITH GRAPH!!!       
+    except Exception:
+        print 'CKAN server not running'
