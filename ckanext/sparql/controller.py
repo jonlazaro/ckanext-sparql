@@ -156,7 +156,7 @@ class SparqlPackageController(PackageController):
                 #print 'POST', c.storeconfigform['endpoint_authrequired']
                 errors = False
                 for field, value in request.params.items():
-                    if not value and field not in ['user', 'passwd', 'globalendpoint']:
+                    if not value and field not in ['user', 'passwd', 'globalendpoint', 'graph']:
                         c.form_error = field
                         c.error_message = "Required fields unfilled"
                         errors = True

@@ -13,7 +13,8 @@ def execute_query(query, resultformat, endpoint, graph=None):
     if endpoint.isglobal and graph:
         query = query[:index] + ' FROM <' + str(graph) + '> ' + query[index:]
     else:
-        query = query[:index] + ' FROM <' + str(endpoint.graph) + '> ' + query[index:]
+        from_clause = 'FROM <' + str(endpoint.graph) + '> ' if len(str(endpoint.graph)) > 0 else ' '
+        query = query[:index] + from_clause + query[index:]
 
     result = 'json' if resultformat == 'html' else resultformat
     params = {'query': str(query), 'format': str(result)}
