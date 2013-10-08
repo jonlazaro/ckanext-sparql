@@ -27,9 +27,12 @@ Tested with CKAN 1.8
     
 **Add plugin configuration variables to CKAN development.ini**
 
-Append this configuration snippet to the file.
+Append this configuration snippet to the file. Do not forget to **change the admin API** key with yours.
 
 	[plugin:sparql]
+	# change this API key
+	api_key = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    
 	#run every s seconds, for debugging purposes
 	#run_every = 30
 
