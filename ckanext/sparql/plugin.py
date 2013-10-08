@@ -76,9 +76,6 @@ class SPARQLExtension(SingletonPlugin):
                     if check_access('package_update', {'id':packageid}):
                         htmlstr += '''<li>
                                 <a href="/dataset/%(id)s/edit/sparql"><img src="/images/icons/package_edit.png" height="16px" width="16px" alt="None" class="inline-icon "> Configure SPARQL Endpoint</a>
-                              </li>
-                              <li>
-                                <a href="/dataset/%(id)s/edit/uploadrdf"><img src="/images/icons/package_edit.png" height="16px" width="16px" alt="None" class="inline-icon "> Upload RDF data</a>
                               </li>''' % {'id': routes.get('id')}
                     htmlstr += '''</ul>
                               </div>
