@@ -215,10 +215,10 @@ class SparqlPackageController(PackageController):
         elif 'upload_rdf' in request.params:
             if 'rdf_file' in request.params and request.params['rdf_file'] is not u'':
                 rdf_file = request.params['rdf_file'].file
-                #rdf_file.read()
+                print rdf_file.read()
                 # [TODO] Call celery to validate and upload data
             elif 'rdf_text' in request.params and request.params['rdf_text'] is not u'':
-                pass # [TODO] Call celery to validate and upload data
+                print request.params['rdf_text'] # [TODO] Call celery to validate and upload data
             else:
                 c.uploadwarningmessage = "No RDF data to upload"
 

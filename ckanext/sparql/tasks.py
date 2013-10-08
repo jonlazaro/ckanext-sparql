@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*- 
+# -*- coding: utf8 -*-
 
 from ckan.lib.celery_app import celery
 from logging import getLogger
@@ -67,7 +67,9 @@ def dataset_rdf_crawler():
         for package in get_package_list():
             request = urllib2.Request(urlparse.urljoin(DATASET_URL, package), headers={"Accept" : "application/rdf+xml"})
             g.parse(data=urllib2.urlopen(request).read())
-            
-            # [TODO] UPDATE SPARQL ENDPOINT WITH GRAPH!!!       
+            for stmt in g:
+                print stmt
+
+            # [TODO] UPDATE SPARQL ENDPOINT WITH GRAPH!!!
     except Exception:
         print 'CKAN server not running'
