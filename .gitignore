@@ -36,3 +36,6 @@ nosetests.xml
 
 # Logging
 *.log
+
+ckanext-sparql.sublime-project
+ckanext-sparql.sublime-workspace
