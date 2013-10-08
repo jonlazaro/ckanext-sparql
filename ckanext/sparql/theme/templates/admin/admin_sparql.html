@@ -32,7 +32,7 @@
       <div class="control-group">
         <label class="control-label" for="dataallowed">Allow data storage</label>
         <div class="controls">
-          <input type="checkbox" name="dataallowed" checked="${'checked' if c.storeconfigform.endpoint_dataallowed else None}"/>
+          <input type="checkbox" value="checked" name="dataallowed" checked="${'checked' if c.storeconfigform.endpoint_dataallowed == True else None}"/>
           <p id="license-instructions">If checked, you allow other dataset editors to insert data in this endpoint (always on different graphs for each dataset)</p>
         </div>
       </div>

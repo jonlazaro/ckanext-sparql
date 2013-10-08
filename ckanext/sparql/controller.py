@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*- 
+# -*- coding: utf8 -*-
 
 from ckan.lib.base import render, c, request, response, _
 from logging import getLogger
@@ -109,8 +109,6 @@ class SparqlPackageController(PackageController):
 
         c.noendpoint = False if self.packageendpoint else True
 
-        #print 'DB', self.packageendpoint.isauthrequired
-
         if 'save' in request.params:
             # It's POST call after form
             packagedb = model.Session.query(Package).filter_by(name=id).first()
@@ -153,7 +151,6 @@ class SparqlPackageController(PackageController):
 
             # Custom endpoint selected
             else:
-                #print 'POST', c.storeconfigform['endpoint_authrequired']
                 errors = False
                 for field, value in request.params.items():
                     if not value and field not in ['user', 'passwd', 'globalendpoint']:
@@ -169,13 +166,15 @@ class SparqlPackageController(PackageController):
                         'sparulurl': c.storeconfigform['endpoint_sparulurl'],
                         'graph': c.storeconfigform['endpoint_graph'],
                         'storetype': c.storeconfigform['endpoint_endpointtype'],
-                        'username': c.storeconfigform['endpoint_user'] if c.storeconfigform['endpoint_authrequired'] else None,
-                        'passwd': c.storeconfigform['endpoint_passwd'] if c.storeconfigform['endpoint_authrequired'] else None,
-                        'isauthrequired': True if c.storeconfigform['endpoint_authrequired'] in ['on', True] else False,
+                        'username': c.storeconfigform['endpoint_user'] if c.storeconfigform['endpoint_authrequired'] == 'checked' else None,
+                        'passwd': c.storeconfigform['endpoint_passwd'] if c.storeconfigform['endpoint_authrequired'] == 'checked' else None,
+                        'isauthrequired': True if c.storeconfigform['endpoint_authrequired'] == 'checked' else False,
                         'isglobal': False,
                         'isdataallowed': False,
                         'isenabled': c.storeconfigform['endpoint_enabled'] if (self.packageendpoint and not c.globalendpointselected) else True
                     }
+
+                    c.storeconfigform['endpoint_authrequired'] = False if c.storeconfigform['endpoint_authrequired'] != 'checked' else True
 
                     if self.packageendpoint and not c.globalendpointselected:
                         if dict((name, getattr(self.packageendpoint, name)) for name in dir(self.packageendpoint) if name in datadict.keys()) != datadict:
@@ -252,7 +251,7 @@ class SparqlGuiController(BaseController):
                     return query_results
                 else:
                     c.queryresults = query_results
-        
+
         return render('sparql/sparq_gui.html')
 
 
@@ -289,7 +288,7 @@ class SparqlAdminController(BaseController):
         c.storeconfigform['endpoint_authrequired'] = globalendpoint.isauthrequired if globalendpoint else False
 
         c.endpointtypes = ENDPOINT_TYPES
-        
+
         if 'save' in request.params:
             # It's POST call after form
             errors = False
@@ -307,13 +306,16 @@ class SparqlAdminController(BaseController):
                     'sparulurl': c.storeconfigform['endpoint_sparulurl'],
                     'graph': c.storeconfigform['endpoint_graph'],
                     'storetype': c.storeconfigform['endpoint_endpointtype'],
-                    'username': c.storeconfigform['endpoint_user'] if c.storeconfigform['endpoint_authrequired'] else None,
-                    'passwd': c.storeconfigform['endpoint_passwd'] if c.storeconfigform['endpoint_authrequired'] else None,
-                    'isauthrequired': True if c.storeconfigform['endpoint_authrequired'] in ['on', True] else False,
+                    'username': c.storeconfigform['endpoint_user'] if c.storeconfigform['endpoint_authrequired'] == 'checked' else None,
+                    'passwd': c.storeconfigform['endpoint_passwd'] if c.storeconfigform['endpoint_authrequired'] == 'checked' else None,
+                    'isauthrequired': True if c.storeconfigform['endpoint_authrequired'] == 'checked' else False,
                     'isglobal': True,
-                    'isdataallowed': True if c.storeconfigform['endpoint_dataallowed'] in ['on', True] else False,
+                    'isdataallowed': True if c.storeconfigform['endpoint_dataallowed'] == 'checked' else False,
                     'isenabled': c.storeconfigform['endpoint_enabled'] if globalendpoint else True
-                }                
+                }
+
+                c.storeconfigform['endpoint_dataallowed'] = False if c.storeconfigform['endpoint_dataallowed'] != 'checked' else True
+                c.storeconfigform['endpoint_authrequired'] = False if c.storeconfigform['endpoint_authrequired'] != 'checked' else True
 
                 if globalendpoint:
                     if dict((name, getattr(globalendpoint, name)) for name in dir(globalendpoint) if name in datadict.keys()) != datadict:

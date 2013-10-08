@@ -54,7 +54,7 @@
   <div class="control-group">
     <label class="control-label" for="authrequired">Authentication required</label>
     <div class="controls">
-      <input type="checkbox" name="authrequired" checked="${'checked' if c.storeconfigform.endpoint_authrequired else None}"/>
+      <input type="checkbox" value="checked" name="authrequired" checked="${'checked' if c.storeconfigform.endpoint_authrequired == True else None}"/>
     </div>
   </div>
   <div class="control-group">
