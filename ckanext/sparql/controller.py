@@ -233,10 +233,10 @@ class SparqlPackageController(PackageController):
                     'passwd': self.packageendpoint.passwd,
                     'isauthrequired': self.packageendpoint.isauthrequired,
                 }
-                celery.send_task("upload_rdf", args=[pkg_data, rdf], task_id=str(uuid.uuid4()))
+                celery.send_task('upload_rdf', args=[pkg_data, rdf], task_id=str(uuid.uuid4()))
                 c.uploadsuccessmessage = 'Uploading data...'
 
-                print get_task_status(id)
+                print get_task_status(id, 'upload_rdf')
 
             else:
                 c.uploadwarningmessage = "No RDF data to upload"

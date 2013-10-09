@@ -20,9 +20,9 @@ CRON_MINUTE = config.get(PLUGIN_SECTION, 'cron_minute')
 DATASET_URL = urlparse.urljoin(SITE_URL, 'dataset/')
 
 
-def get_task_status(package_id):
+def get_task_status(package_id, task_name):
     res = requests.post(
-        API_URL + 'action/task_status_show', json.dumps({'entity_id': package_id, 'task_type': u'sparql', 'key': u'celery_task_status'}),
+        API_URL + 'action/task_status_show', json.dumps({'entity_id': package_id, 'task_type': task_name, 'key': u'celery_task_status'}),
         headers = {'Authorization': API_KEY,
                    'Content-Type': 'application/json'}
     )

@@ -46,7 +46,7 @@ def upload_rdf(pkg_data, data):
     task_info = {
         'entity_id': pkg_data['id'],
         'entity_type': u'package',
-        'task_type': u'sparql',
+        'task_type': u'upload_rdf',
         'key': u'celery_task_status',
         'value': u'%s - %s' % ('RUNNING', unicode(upload_rdf.request.id)),
         'error': u'',
@@ -58,7 +58,7 @@ def upload_rdf(pkg_data, data):
     task_info = {
         'entity_id': pkg_data['id'],
         'entity_type': u'package',
-        'task_type': u'sparql',
+        'task_type': u'upload_rdf',
         'key': u'celery_task_status',
         'value': u'%s - %s' % ('ERROR', unicode(upload_rdf.request.id)),
         'error': u'',
@@ -70,7 +70,7 @@ def upload_rdf(pkg_data, data):
     task_info = {
         'entity_id': pkg_data['id'],
         'entity_type': u'package',
-        'task_type': u'sparql',
+        'task_type': u'upload_rdf',
         'key': u'celery_task_status',
         'value': u'%s - %s' % ('FINISHED', unicode(upload_rdf.request.id)),
         'error': u'',
