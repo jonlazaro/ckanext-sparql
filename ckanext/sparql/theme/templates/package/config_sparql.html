@@ -76,7 +76,7 @@
         <div class="tab-pane ${'active' if (c.uploadwarningmessage or c.uploadsuccessmessage or c.uploaderrormessage) else ''}" id="update-data" py:if="not c.noendpoint">
           <form 
             id="admin-rdfstore-configuration" 
-            action="/dataset/${c.pkg.name}/uploadrdf"
+            action="/dataset/${c.pkg.name}/edit/sparql"
             method="post"
             enctype="multipart/form-data"
             class="form-horizontal"

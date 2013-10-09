@@ -68,7 +68,7 @@ class SPARQLExtension(SingletonPlugin):
                                   <div class="dropdown-appears">
                                     <ul class="dropdown-menu">'''
 
-                    if sparqlendpoint.isenabled:
+                    if sparqlendpoint and sparqlendpoint.isenabled:
                         htmlstr += '''<li>
                                         <a href="/dataset/%s/sparql"><img src="/images/icons/package.png" height="16px" width="16px" alt="None" class="inline-icon "> Query SPARQL Endpoint</a>
                                       </li>''' % routes.get('id')
@@ -94,10 +94,6 @@ class SPARQLExtension(SingletonPlugin):
             action='sparql_endpoint')
 
         map.connect('/dataset/{id}/edit/sparql',
-            controller='ckanext.sparql.controller:SparqlPackageController',
-            action='sparql_config')
-
-        map.connect('/dataset/{id}/uploadrdf',
             controller='ckanext.sparql.controller:SparqlPackageController',
             action='sparql_config')
 
