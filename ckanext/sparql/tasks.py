@@ -39,8 +39,14 @@ else:
     print 'Launching periodic task at %s:%s' % (CRON_HOUR, CRON_MINUTE)
     periodicity = crontab(hour=CRON_HOUR, minute=CRON_MINUTE)
 
+def validate_rdf_data(data, data_format):
+    pass
+
+def upload_rdf_data(graph):
+    pass
+
 @celery.task(name="upload_rdf")
-def upload_rdf(pkg_data, data):
+def upload_rdf(pkg_data, data, data_format):
     print pkg_data
     # Task status: RUNNING
     task_info = {
@@ -54,17 +60,38 @@ def upload_rdf(pkg_data, data):
     }
     update_task_status(task_info)
 
-    # Task status: ERROR
-    task_info = {
-        'entity_id': pkg_data['id'],
-        'entity_type': u'package',
-        'task_type': u'upload_rdf',
-        'key': u'celery_task_status',
-        'value': u'%s - %s' % ('ERROR', unicode(upload_rdf.request.id)),
-        'error': u'',
-        'last_updated': datetime.now().isoformat()
-    }
-    update_task_status(task_info)
+    graph = None
+    try:
+        graph = validate_rdf_data(data, data_format)
+    except:
+        # Task status: ERROR
+        task_info = {
+            'entity_id': pkg_data['id'],
+            'entity_type': u'package',
+            'task_type': u'upload_rdf',
+            'key': u'celery_task_status',
+            'value': u'%s - %s' % ('ERROR', unicode(upload_rdf.request.id)),
+            'error': u'Uploaded data is not valid RDF or it\'s not in the given format (%s).' % data_format,
+            'last_updated': datetime.now().isoformat()
+        }
+        update_task_status(task_info)
+        return 0
+
+    try:
+        upload_rdf_data(graph)
+    except:
+        # Task status: ERROR
+        task_info = {
+            'entity_id': pkg_data['id'],
+            'entity_type': u'package',
+            'task_type': u'upload_rdf',
+            'key': u'celery_task_status',
+            'value': u'%s - %s' % ('ERROR', unicode(upload_rdf.request.id)),
+            'error': u'Could not upload RDF data.',
+            'last_updated': datetime.now().isoformat()
+        }
+        update_task_status(task_info)
+        return 0
 
     # Task status: FINISHED
     task_info = {
@@ -77,7 +104,7 @@ def upload_rdf(pkg_data, data):
         'last_updated': datetime.now().isoformat()
     }
     update_task_status(task_info)
-    print data
+    return 1
 
 @periodic_task(run_every=periodicity)
 def dataset_rdf_crawler():
