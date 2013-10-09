@@ -1,25 +1,19 @@
 # -*- coding: utf8 -*-
 
 from ckan.lib.celery_app import celery
-from logging import getLogger
 
 from celery.schedules import crontab
 from celery.task import periodic_task
 
 from datetime import timedelta, datetime
-
 from rdflib import Graph
 
 import urlparse
-import urllib
 import urllib2
-import requests
-import json
-
 import os
 import ConfigParser
 
-
+from utils import update_task_status, get_package_list
 
 #Configuration load
 config = ConfigParser.ConfigParser()
@@ -29,8 +23,6 @@ MAIN_SECTION = 'app:main'
 PLUGIN_SECTION = 'plugin:sparql'
 
 SITE_URL = config.get(MAIN_SECTION, 'ckan.site_url')
-API_URL = urlparse.urljoin(SITE_URL, 'api/')
-API_KEY = config.get(PLUGIN_SECTION, 'api_key')
 CRON_HOUR = config.get(PLUGIN_SECTION, 'cron_hour')
 CRON_MINUTE = config.get(PLUGIN_SECTION, 'cron_minute')
 DATASET_URL = urlparse.urljoin(SITE_URL, 'dataset/')
@@ -47,18 +39,45 @@ else:
     print 'Launching periodic task at %s:%s' % (CRON_HOUR, CRON_MINUTE)
     periodicity = crontab(hour=CRON_HOUR, minute=CRON_MINUTE)
 
-def get_package_list():
-    res = requests.post(
-        API_URL + 'action/package_list', json.dumps({}),
-        headers = {'Authorization': API_KEY,
-                   'Content-Type': 'application/json'}
-    )
+@celery.task(name="upload_rdf")
+def upload_rdf(pkg_data, data):
+    print pkg_data
+    # Task status: RUNNING
+    task_info = {
+        'entity_id': pkg_data['id'],
+        'entity_type': u'package',
+        'task_type': u'sparql',
+        'key': u'celery_task_status',
+        'value': u'%s - %s' % ('RUNNING', unicode(upload_rdf.request.id)),
+        'error': u'',
+        'last_updated': datetime.now().isoformat()
+    }
+    update_task_status(task_info)
 
-    if res.status_code == 200:
-        return json.loads(res.content)['result']
-    else:
-        print 'ckan failed to get package list, status_code (%s), error %s' % (res.status_code, res.content)
-        return ()
+    # Task status: ERROR
+    task_info = {
+        'entity_id': pkg_data['id'],
+        'entity_type': u'package',
+        'task_type': u'sparql',
+        'key': u'celery_task_status',
+        'value': u'%s - %s' % ('ERROR', unicode(upload_rdf.request.id)),
+        'error': u'',
+        'last_updated': datetime.now().isoformat()
+    }
+    update_task_status(task_info)
+
+    # Task status: FINISHED
+    task_info = {
+        'entity_id': pkg_data['id'],
+        'entity_type': u'package',
+        'task_type': u'sparql',
+        'key': u'celery_task_status',
+        'value': u'%s - %s' % ('FINISHED', unicode(upload_rdf.request.id)),
+        'error': u'',
+        'last_updated': datetime.now().isoformat()
+    }
+    update_task_status(task_info)
+    print data
 
 @periodic_task(run_every=periodicity)
 def dataset_rdf_crawler():

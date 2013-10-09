@@ -3,19 +3,19 @@
 from ckan.lib.base import render, c, request, response, _
 from logging import getLogger
 from ckan.lib.base import BaseController, abort
-from ckan.logic import get_action, NotFound
+from ckan.logic import get_action
 from sparql_model.model import SparqlEndpoint
 from ckan.controllers.package import PackageController
 from ckan.model.package import Package
-from pylons import url
+from ckan.lib.celery_app import celery
 
-from utils import execute_query
+from utils import execute_query, get_task_status
 
 import ckan.authz
 import ckan.model as model
 import ConfigParser
 import os
-#import rdflib
+import uuid
 
 log = getLogger(__name__)
 
@@ -107,7 +107,7 @@ class SparqlPackageController(PackageController):
 
         c.endpointtypes = ENDPOINT_TYPES
 
-        c.noendpoint = False if self.packageendpoint else True
+        c.noendpoint = False if self.packageendpoint and self.packageendpoint.isenabled else True
 
         if 'save' in request.params:
             # It's POST call after form
@@ -200,6 +200,7 @@ class SparqlPackageController(PackageController):
             if self.packageendpoint:
                 self.packageendpoint.isenabled = True
                 c.storeconfigform['endpoint_enabled'] = True
+                c.noendpoint = False
                 log.info('[' + id + '] Enabling rdf store...')
                 model.Session.commit()
                 c.successmessage = "Endpoint succesfully enabled"
@@ -208,19 +209,35 @@ class SparqlPackageController(PackageController):
             if self.packageendpoint:
                 self.packageendpoint.isenabled = False
                 c.storeconfigform['endpoint_enabled'] = False
+                c.noendpoint = True
                 log.info('[' + id + '] Disabling rdf store...')
                 model.Session.commit()
                 c.successmessage = "Endpoint succesfully disabled"
 
         elif 'upload_rdf' in request.params:
+            rdf = None
             if 'rdf_file' in request.params and request.params['rdf_file'] is not u'':
                 rdf_file = request.params['rdf_file'].file
-                print rdf_file.read()
-                c.uploadsuccessmessage = 'Uploading data...'
-                # [TODO] Call celery to validate and upload data
+                rdf = rdf_file.read()
             elif 'rdf_text' in request.params and request.params['rdf_text'] is not u'':
-                print request.params['rdf_text'] # [TODO] Call celery to validate and upload data
+                rdf = request.params['rdf_text']
+
+            if rdf:
+                pkg_graph = request.url.replace('/edit/sparql', '') if self.packageendpoint.isglobal else self.packageendpoint.graph
+                pkg_data = {
+                    'id': id,
+                    'sparulurl': self.packageendpoint.sparulurl,
+                    'storetype': self.packageendpoint.storetype,
+                    'graph': pkg_graph,
+                    'username': self.packageendpoint.username,
+                    'passwd': self.packageendpoint.passwd,
+                    'isauthrequired': self.packageendpoint.isauthrequired,
+                }
+                celery.send_task("upload_rdf", args=[pkg_data, rdf], task_id=str(uuid.uuid4()))
                 c.uploadsuccessmessage = 'Uploading data...'
+
+                print get_task_status(id)
+
             else:
                 c.uploadwarningmessage = "No RDF data to upload"
 
