@@ -40,14 +40,16 @@ else:
     periodicity = crontab(hour=CRON_HOUR, minute=CRON_MINUTE)
 
 def validate_rdf_data(data, data_format):
-    pass
+    g = Graph()
+    g.parse(data=data, format=data_format)
+    return g
 
 def upload_rdf_data(graph):
     pass
 
 @celery.task(name="upload_rdf")
 def upload_rdf(pkg_data, data, data_format):
-    print pkg_data
+    print data_format
     # Task status: RUNNING
     task_info = {
         'entity_id': pkg_data['id'],

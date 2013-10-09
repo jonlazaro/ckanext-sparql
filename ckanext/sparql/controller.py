@@ -9,7 +9,7 @@ from ckan.controllers.package import PackageController
 from ckan.model.package import Package
 from ckan.lib.celery_app import celery
 
-from utils import execute_query, get_task_status
+from utils import execute_query, get_task_status, SUPPORTED_RDF_SYNTAXES
 
 import ckan.authz
 import ckan.model as model
@@ -73,6 +73,17 @@ class SparqlPackageController(PackageController):
         c.uploadwarningmessage = None
         c.uploaderrormessage = None
         c.uploadsuccessmessage = None
+        c.supported_rdf_syntaxes = SUPPORTED_RDF_SYNTAXES
+
+        # check if it there is any upload task running
+        task_status = get_task_status(id, 'upload_rdf')
+        if 'value' in task_status:
+            if 'RUNNING' in task_status['value']:
+                c.uploadsuccessmessage = 'Uploading data... (refresh the page to know the progress of the upload). Upload started on %s' % str(task_status['last_updated'])
+            elif 'FINISHED' in task_status['value']:
+                c.uploadsuccessmessage = 'Last data uploading (%s) was succesful!' % str(task_status['last_updated'])
+            elif 'ERROR' in task_status['value']:
+                c.uploaderrormessage = 'Last data uploading (%s) failed: %s' % (str(task_status['last_updated']), str(task_status['error']))
 
         c.globalendpointselected = False
         nowdisabled = False
@@ -233,11 +244,11 @@ class SparqlPackageController(PackageController):
                     'passwd': self.packageendpoint.passwd,
                     'isauthrequired': self.packageendpoint.isauthrequired,
                 }
-                celery.send_task('upload_rdf', args=[pkg_data, rdf], task_id=str(uuid.uuid4()))
-                c.uploadsuccessmessage = 'Uploading data...'
-
-                print get_task_status(id, 'upload_rdf')
-
+                celery.send_task('upload_rdf', args=[pkg_data, rdf, request.params['rdf_format']], task_id=str(uuid.uuid4()))
+                c.uploadsuccessmessage = 'Uploading data... (refresh the page to know the progress of the upload)'
+                c.uploaderrormessage = ''
+                c.uploadwarningmessage = ''
+                # [TODO] Check if task running not to accept POST parameters (avoid F5 re-posting)
             else:
                 c.uploadwarningmessage = "No RDF data to upload"
 
