@@ -15,7 +15,7 @@ import requests
 import os
 import ConfigParser
 
-from utils import update_task_status, get_package_list
+from utils import update_task_status, get_package_list, get_global_sparql_enpoint
 
 #Configuration load
 config = ConfigParser.ConfigParser()
@@ -136,14 +136,62 @@ def upload_rdf(pkg_data, data, data_format):
 
 @periodic_task(run_every=periodicity)
 def dataset_rdf_crawler():
-    g = Graph()
+    # Task status: RUNNING
+    task_info = {
+        'entity_id': 'GLOBAL',
+        'entity_type': u'package',
+        'task_type': u'rdf_crawler',
+        'key': u'celery_task_status',
+        'value': u'%s - %s' % ('RUNNING', unicode(dataset_rdf_crawler.request.id)),
+        'error': u'',
+        'last_updated': datetime.now().isoformat()
+    }
+    update_task_status(task_info)
+
     try:
+        crawl_and_upload_data()
+    except Exception, e:
+        # Task status: ERROR
+        task_info = {
+            'entity_id': 'GLOBAL',
+            'entity_type': u'package',
+            'task_type': u'rdf_crawler',
+            'key': u'celery_task_status',
+            'value': u'%s - %s' % ('ERROR', unicode(dataset_rdf_crawler.request.id)),
+            'error': u'Error ocurred while crawling RDF data from CKAN. %s' % e,
+            'last_updated': datetime.now().isoformat()
+        }
+        update_task_status(task_info)
+
+def crawl_and_upload_data():
+    g = Graph()
+    sparql_endpoint = get_global_sparql_enpoint()
+
+    if sparql_endpoint:
         for package in get_package_list():
             request = urllib2.Request(urlparse.urljoin(DATASET_URL, package), headers={"Accept" : "application/rdf+xml"})
             g.parse(data=urllib2.urlopen(request).read())
-            for stmt in g:
-                print stmt
-
-            # [TODO] UPDATE SPARQL ENDPOINT WITH GRAPH!!!
-    except Exception:
-        print 'CKAN server not running'
+            upload_rdf_data(g, sparql_endpoint)
+        # Task status: FINISHED
+        task_info = {
+            'entity_id': 'GLOBAL',
+            'entity_type': u'package',
+            'task_type': u'rdf_crawler',
+            'key': u'celery_task_status',
+            'value': u'%s - %s' % ('FINISHED', unicode(dataset_rdf_crawler.request.id)),
+            'error': u'',
+            'last_updated': datetime.now().isoformat()
+        }
+        update_task_status(task_info)
+    else:
+        # Task status: ERROR
+        task_info = {
+            'entity_id': 'GLOBAL',
+            'entity_type': u'package',
+            'task_type': u'rdf_crawler',
+            'key': u'celery_task_status',
+            'value': u'%s - %s' % ('ERROR', unicode(dataset_rdf_crawler.request.id)),
+            'error': u'No global endpoint defined or not authorization to see its details.',
+            'last_updated': datetime.now().isoformat()
+        }
+        update_task_status(task_info)

@@ -19,6 +19,9 @@ CRON_HOUR = config.get(PLUGIN_SECTION, 'cron_hour')
 CRON_MINUTE = config.get(PLUGIN_SECTION, 'cron_minute')
 DATASET_URL = urlparse.urljoin(SITE_URL, 'dataset/')
 
+ENDPOINT_TYPES = {'virtuoso': 'OpenLink Virtuoso', 'sparql11': 'SPARQL 1.1 Endpoint'}
+RESULT_FORMATS = {'html': 'HTML', 'json': 'JSON', 'csv': 'CSV', 'rdf': 'RDF'}
+
 SUPPORTED_RDF_SYNTAXES = {
     'RDF/XML' :'xml',
     'Turtle' :'turtle',
@@ -31,6 +34,18 @@ SUPPORTED_RDF_SYNTAXES = {
     'RDFa 1.1' :'rdfa1.1',
     'TriX' :'trix',
 }
+
+def get_global_sparql_enpoint():
+    res = requests.post(
+        API_URL + 'get_global_sparql_enpoint', json.dumps({}),
+        headers = {'Authorization': API_KEY,
+                   'Content-Type': 'application/json'}
+    )
+
+    if res.status_code == 200:
+        return json.loads(res.content)
+    else:
+        return {}
 
 def get_task_status(package_id, task_name):
     res = requests.post(
