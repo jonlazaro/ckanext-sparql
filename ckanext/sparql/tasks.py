@@ -50,14 +50,21 @@ def validate_rdf_data(data, data_format):
 def upload_rdf_data(graph, pkg_data):
     headers = {}
     success_codes = []
+
+    triples = ''
+    for s, p, o in graph.triples((None, None, None)):
+        triple = "%s %s %s . " % (s.n3(), p.n3(), o.n3())
+        triples += triple
+
     if pkg_data['storetype'] == 'virtuoso':
-        query = 'INSERT IN GRAPH <%s> { ' % pkg_data['graph'].encode('utf-8')
-        for s, p, o in graph.triples((None, None, None)):
-            triple = "%s %s %s . " % (s.n3(), p.n3(), o.n3())
-            query += triple
-        query += '}'
+        query = 'INSERT IN GRAPH <%s> { %s }' % (pkg_data['graph'].encode('utf-8'), triples)
         headers = {'Content-type': 'application/sparql-query'}
-        success_codes.append(201)
+        success_codes = [201]
+
+    elif pkg_data['storetype'] == 'sparql11':
+        query = 'INSERT DATA { GRAPH %s { %s } }' % (pkg_data['graph'].encode('utf-8'), triples)
+        headers = {'Content-type': 'application/sparql-update', 'Connection': 'Keep-Alive'}
+        success_codes = [200, 204]
 
     if pkg_data['isauthrequired']:
         r = requests.post(pkg_data['sparulurl'], data=query.encode('utf-8'), headers=headers, auth=HTTPBasicAuth(pkg_data['username'], pkg_data['passwd']))
