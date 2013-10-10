@@ -37,8 +37,8 @@ class SPARQLExtension(SingletonPlugin):
 
     def filter(self, stream):
         routes = request.environ.get('pylons.routes_dict')
-        if routes.get('controller') in ('admin', 'ckanext.sparql.controller:SparqlAdminController'):
-            isactive = 'active' if routes.get('controller') == 'ckanext.sparql.controller:SparqlAdminController' else ''
+        if routes.get('controller') in ('admin', 'ckanext.sparql.controllers.controller:SparqlAdminController'):
+            isactive = 'active' if routes.get('controller') == 'ckanext.sparql.controllers.controller:SparqlAdminController' else ''
             stream = stream | Transformer('//ul[@class="nav nav-pills"]').append(HTML(
                     '''<li class="''' + isactive + '''">
                         <a class href="/ckan-admin/sparql-config">
@@ -58,10 +58,10 @@ class SPARQLExtension(SingletonPlugin):
             packageid = None
 
         if packageid:
-            if routes.get('controller') in ('package', 'related', 'ckanext.sparql.controller:SparqlPackageController'):
+            if routes.get('controller') in ('package', 'related', 'ckanext.sparql.controllers.controller:SparqlPackageController'):
                 sparqlendpoint = model.Session.query(SparqlEndpoint).filter(SparqlEndpoint.packages.any(Package.name == routes.get('id'))).first()
                 htmlstr = ''
-                isactive = 'active' if routes.get('controller') == 'ckanext.sparql.controller:SparqlPackageController' else ''
+                isactive = 'active' if routes.get('controller') == 'ckanext.sparql.controllers.controller:SparqlPackageController' else ''
                 if (sparqlendpoint and sparqlendpoint.isenabled) or check_access('package_update', {'id':packageid}):
                     htmlstr += '''<li class="dropdown ''' + isactive + '''">
                                   <a class="dropdown-toggle" data-toggle="dropdown" href="#"><img src="/icons/rdf_flyer.24" height="16px" width="16px" alt="None" class="inline-icon ">SPARQL Endpoint<b class="caret"></b></a>
@@ -86,19 +86,35 @@ class SPARQLExtension(SingletonPlugin):
 
     def before_map(self, map):
         map.connect('/ckan-admin/sparql-config',
-            controller='ckanext.sparql.controller:SparqlAdminController',
+            controller='ckanext.sparql.controllers.controller:SparqlAdminController',
             action='sparql_config')
 
         map.connect('/sparql',
-            controller='ckanext.sparql.controller:SparqlGuiController',
+            controller='ckanext.sparql.controllers.controller:SparqlGuiController',
             action='sparql_endpoint')
 
         map.connect('/dataset/{id}/edit/sparql',
-            controller='ckanext.sparql.controller:SparqlPackageController',
+            controller='ckanext.sparql.controllers.controller:SparqlPackageController',
             action='sparql_config')
 
         map.connect('/dataset/{id}/sparql',
-            controller='ckanext.sparql.controller:SparqlPackageController',
+            controller='ckanext.sparql.controllers.controller:SparqlPackageController',
             action='sparql_endpoint')
+
+        map.connect('/api/get_global_sparql_enpoint',
+            controller='ckanext.sparql.controllers.api:SparqlApiController',
+            action='get_global_enpoint')
+
+        map.connect('/api/dataset/{package_id}/sparql',
+            controller='ckanext.sparql.controllers.api:SparqlApiController',
+            action='sparql_query')
+
+        map.connect('/api/sparql',
+            controller='ckanext.sparql.controllers.api:SparqlApiController',
+            action='sparql_query')
+
+        map.connect('/api/upload_rdf',
+            controller='ckanext.sparql.controllers.api:SparqlApiController',
+            action='upload_rdf')
 
         return map
