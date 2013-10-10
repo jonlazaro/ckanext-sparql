@@ -150,6 +150,19 @@ def dataset_rdf_crawler():
 
     try:
         crawl_and_upload_data()
+
+        # Task status: FINISHED
+        task_info = {
+            'entity_id': 'GLOBAL',
+            'entity_type': u'package',
+            'task_type': u'rdf_crawler',
+            'key': u'celery_task_status',
+            'value': u'%s - %s' % ('FINISHED', unicode(dataset_rdf_crawler.request.id)),
+            'error': u'',
+            'last_updated': datetime.now().isoformat()
+        }
+        update_task_status(task_info)
+
     except Exception, e:
         # Task status: ERROR
         task_info = {
@@ -172,26 +185,5 @@ def crawl_and_upload_data():
             request = urllib2.Request(urlparse.urljoin(DATASET_URL, package), headers={"Accept" : "application/rdf+xml"})
             g.parse(data=urllib2.urlopen(request).read())
             upload_rdf_data(g, sparql_endpoint)
-        # Task status: FINISHED
-        task_info = {
-            'entity_id': 'GLOBAL',
-            'entity_type': u'package',
-            'task_type': u'rdf_crawler',
-            'key': u'celery_task_status',
-            'value': u'%s - %s' % ('FINISHED', unicode(dataset_rdf_crawler.request.id)),
-            'error': u'',
-            'last_updated': datetime.now().isoformat()
-        }
-        update_task_status(task_info)
     else:
-        # Task status: ERROR
-        task_info = {
-            'entity_id': 'GLOBAL',
-            'entity_type': u'package',
-            'task_type': u'rdf_crawler',
-            'key': u'celery_task_status',
-            'value': u'%s - %s' % ('ERROR', unicode(dataset_rdf_crawler.request.id)),
-            'error': u'No global endpoint defined or not authorization to see its details.',
-            'last_updated': datetime.now().isoformat()
-        }
-        update_task_status(task_info)
+        raise Exception('No global endpoint defined or not authorization to see its details.')

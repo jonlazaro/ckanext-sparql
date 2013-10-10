@@ -302,6 +302,16 @@ class SparqlAdminController(BaseController):
         c.successmessage = None
         c.storeconfigform = {}
 
+        task_status = get_task_status('GLOBAL', 'rdf_crawler')
+        if 'value' in task_status:
+            if 'RUNNING' in task_status['value']:
+                c.taskstatus = 'Running...'
+            elif 'FINISHED' in task_status['value']:
+                c.taskstatus = 'Last crawling finished succesfully'
+            elif 'ERROR' in task_status['value']:
+                c.taskstatus = 'Last crawling failed: %s' % str(task_status['error'])
+            c.tasktime = task_status['last_updated']
+
         globalendpointquery = model.Session.query(SparqlEndpoint).filter_by(isglobal=True)
         globalendpoint = globalendpointquery.first()
 

@@ -61,9 +61,16 @@
             <input id="${'disable' if c.storeconfigform.endpoint_enabled else 'enable'}" class="btn btn-primary" name="${'disable' if c.storeconfigform.endpoint_enabled else 'enable'}" type="submit" value="${'Disable' if c.storeconfigform.endpoint_enabled else 'Enable'}" />
           </div>
         </div>
+        <h2>RDF crawler</h2>
+        <div class="control-group">
+          <label class="control-label">RDF crawling task status</label>
+          <div class="controls">${ c.taskstatus }</div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Time</label>
+          <div class="controls">${ c.tasktime }</div>
+        </div>
       </form>
-      <h2>Crawler status</h2>
-      <p>Running...</p>
     </div>
   </div>
 
