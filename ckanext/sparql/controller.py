@@ -76,9 +76,11 @@ class SparqlPackageController(PackageController):
         c.supported_rdf_syntaxes = SUPPORTED_RDF_SYNTAXES
 
         # check if it there is any upload task running
+        running = False
         task_status = get_task_status(id, 'upload_rdf')
         if 'value' in task_status:
             if 'RUNNING' in task_status['value']:
+                running = True
                 c.uploadsuccessmessage = 'Uploading data... (refresh the page to know the progress of the upload). Upload started on %s' % str(task_status['last_updated'])
             elif 'FINISHED' in task_status['value']:
                 c.uploadsuccessmessage = 'Last data uploading (%s) was succesful!' % str(task_status['last_updated'])
@@ -226,31 +228,34 @@ class SparqlPackageController(PackageController):
                 c.successmessage = "Endpoint succesfully disabled"
 
         elif 'upload_rdf' in request.params:
-            rdf = None
-            if 'rdf_file' in request.params and request.params['rdf_file'] is not u'':
-                rdf_file = request.params['rdf_file'].file
-                rdf = rdf_file.read()
-            elif 'rdf_text' in request.params and request.params['rdf_text'] is not u'':
-                rdf = request.params['rdf_text']
+            if not running:
+                rdf = None
+                if 'rdf_file' in request.params and request.params['rdf_file'] is not u'':
+                    rdf_file = request.params['rdf_file'].file
+                    rdf = rdf_file.read()
+                elif 'rdf_text' in request.params and request.params['rdf_text'] is not u'':
+                    rdf = request.params['rdf_text']
 
-            if rdf:
-                pkg_graph = request.url.replace('/edit/sparql', '') if self.packageendpoint.isglobal else self.packageendpoint.graph
-                pkg_data = {
-                    'id': id,
-                    'sparulurl': self.packageendpoint.sparulurl,
-                    'storetype': self.packageendpoint.storetype,
-                    'graph': pkg_graph,
-                    'username': self.packageendpoint.username,
-                    'passwd': self.packageendpoint.passwd,
-                    'isauthrequired': self.packageendpoint.isauthrequired,
-                }
-                celery.send_task('upload_rdf', args=[pkg_data, rdf, request.params['rdf_format']], task_id=str(uuid.uuid4()))
-                c.uploadsuccessmessage = 'Uploading data... (refresh the page to know the progress of the upload)'
-                c.uploaderrormessage = ''
-                c.uploadwarningmessage = ''
-                # [TODO] Check if task running not to accept POST parameters (avoid F5 re-posting)
+                if rdf:
+                    pkg_graph = request.url.replace('/edit/sparql', '') if self.packageendpoint.isglobal else self.packageendpoint.graph
+                    pkg_data = {
+                        'id': id,
+                        'sparulurl': self.packageendpoint.sparulurl,
+                        'storetype': self.packageendpoint.storetype,
+                        'graph': pkg_graph,
+                        'username': self.packageendpoint.username,
+                        'passwd': self.packageendpoint.passwd,
+                        'isauthrequired': self.packageendpoint.isauthrequired,
+                    }
+                    celery.send_task('upload_rdf', args=[pkg_data, rdf, request.params['rdf_format']], task_id=str(uuid.uuid4()))
+                    c.uploadsuccessmessage = 'Uploading data... (refresh the page to know the progress of the upload)'
+                    c.uploaderrormessage = None
+                    c.uploadwarningmessage = None
+                    # [TODO] Check if task running not to accept POST parameters (avoid F5 re-posting)
+                else:
+                    c.uploadwarningmessage = "No RDF data to upload"
             else:
-                c.uploadwarningmessage = "No RDF data to upload"
+                c.uploadwarningmessage = "You can't upload more than one RDF data block at the same time."
 
         return render('package/config_sparql.html')
         # [TODO] If endpoint created or updated, check if valid with celery query and update test.

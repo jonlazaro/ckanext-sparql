@@ -97,26 +97,37 @@
               ${c.uploaderrormessage}
             </div>
 
-            <div py:if="not c.uploadsuccessmessage or 'Uploading data...' not in c.uploadsuccessmessage">
-              <h4>Upload RDF data</h4>
-              <p>Upload a file:</p>
-              <p><input type="file" name="rdf_file" id="rdf_file" /></p>
-              <p>Or paste it directly:</p>
-              <textarea rows="13" class="span6" name="rdf_text" id="rdf_text"></textarea>
-              <br /><br />
-              <p>
-                RDF format: 
-                <select id="rdf_format" name="rdf_format">
-                 <option value="${ format }" py:for="label, format in c.supported_rdf_syntaxes.items()">${ label }</option>
-                </select>
-              </p>
-              <input id="upload_rdf" class="btn btn-primary" name="upload_rdf" type="submit" value="Upload data" />
-            </div>
+            <py:choose>
+              <py:when test="not c.uploadsuccessmessage or 'Uploading data...' not in c.uploadsuccessmessage">
+                <div>
+                  <h4>Upload RDF data</h4>
+                  <p>Upload a file:</p>
+                  <p><input type="file" name="rdf_file" id="rdf_file" /></p>
+                  <p>Or paste it directly:</p>
+                  <textarea rows="13" class="span6" name="rdf_text" id="rdf_text"></textarea>
+                  <br /><br />
+                  <p>
+                    RDF format: 
+                    <select id="rdf_format" name="rdf_format">
+                     <option value="${ format }" py:for="label, format in c.supported_rdf_syntaxes.items()">${ label }</option>
+                    </select>
+                  </p>
+                  <input id="upload_rdf" class="btn btn-primary" name="upload_rdf" type="submit" value="Upload data" />
+                </div>              
+              </py:when>
+              <py:otherwise>
+                Refresh the page clicking <a href="#" onclick="refreshPage()" id="refreshpage">here</a>.
+              </py:otherwise>
+            </py:choose>
           </form>
         </div>
       </div>
     </div>
     <script type="text/javascript">
+      function refreshPage() {
+        location.reload();
+      }
+
       function showCustomEndpointDiv() {
         var endpointSelect = document.getElementById('globalendpoint');
         var selectedValue = endpointSelect.options[endpointSelect.selectedIndex].value;

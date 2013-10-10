@@ -7,9 +7,11 @@ from celery.task import periodic_task
 
 from datetime import timedelta, datetime
 from rdflib import Graph
+from requests.auth import HTTPBasicAuth
 
 import urlparse
 import urllib2
+import requests
 import os
 import ConfigParser
 
@@ -39,17 +41,34 @@ else:
     print 'Launching periodic task at %s:%s' % (CRON_HOUR, CRON_MINUTE)
     periodicity = crontab(hour=CRON_HOUR, minute=CRON_MINUTE)
 
+
 def validate_rdf_data(data, data_format):
     g = Graph()
     g.parse(data=data, format=data_format)
     return g
 
-def upload_rdf_data(graph):
-    pass
+def upload_rdf_data(graph, pkg_data):
+    headers = {}
+    success_codes = []
+    if pkg_data['storetype'] == 'virtuoso':
+        query = 'INSERT IN GRAPH <%s> { ' % pkg_data['graph'].encode('utf-8')
+        for s, p, o in graph.triples((None, None, None)):
+            triple = "%s %s %s . " % (s.n3(), p.n3(), o.n3())
+            query += triple
+        query += '}'
+        headers = {'Content-type': 'application/sparql-query'}
+        success_codes.append(201)
+
+    if pkg_data['isauthrequired']:
+        r = requests.post(pkg_data['sparulurl'], data=query.encode('utf-8'), headers=headers, auth=HTTPBasicAuth(pkg_data['username'], pkg_data['passwd']))
+    else:
+        r = requests.post(pkg_data['sparulurl'], data=query.encode('utf-8'), headers=headers)
+
+    if r.status_code not in success_codes:
+        raise Exception("Insertion call failed")
 
 @celery.task(name="upload_rdf")
 def upload_rdf(pkg_data, data, data_format):
-    print data_format
     # Task status: RUNNING
     task_info = {
         'entity_id': pkg_data['id'],
@@ -80,8 +99,8 @@ def upload_rdf(pkg_data, data, data_format):
         return 0
 
     try:
-        upload_rdf_data(graph)
-    except:
+        upload_rdf_data(graph, pkg_data)
+    except Exception, e:
         # Task status: ERROR
         task_info = {
             'entity_id': pkg_data['id'],
@@ -89,7 +108,7 @@ def upload_rdf(pkg_data, data, data_format):
             'task_type': u'upload_rdf',
             'key': u'celery_task_status',
             'value': u'%s - %s' % ('ERROR', unicode(upload_rdf.request.id)),
-            'error': u'Could not upload RDF data.',
+            'error': u'Could not upload RDF data. %s' % e,
             'last_updated': datetime.now().isoformat()
         }
         update_task_status(task_info)

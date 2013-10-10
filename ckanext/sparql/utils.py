@@ -61,7 +61,6 @@ def get_package_list():
         return ()
 
 def update_task_status(task_info):
-    print "Updating task status for entity_id %s" % task_info['entity_id']
     res = requests.post(
         API_URL + 'action/task_status_update', json.dumps(task_info),
         headers = {'Authorization': API_KEY,
