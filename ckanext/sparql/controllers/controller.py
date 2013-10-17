@@ -85,14 +85,18 @@ class SparqlPackageController(PackageController):
                 c.uploaderrormessage = 'Last data uploading (%s) failed: %s' % (str(task_status['last_updated']), str(task_status['error']))
 
         c.globalendpointselected = False
+
+        c.enabled = self.packageendpoint.isenabled if self.packageendpoint else False
         nowdisabled = False
         if self.packageendpoint and self.packageendpoint.isglobal:
             if self.packageendpoint.isdataallowed and self.packageendpoint.isenabled:
                 globalendpoint = self.packageendpoint
                 c.globalendpoint = True
                 c.globalendpointselected = True
+                c.enabled = True
             else:
                 c.warningmessage = "Sorry but global endpoint is now disabled, you can setup a new endpoint in this form."
+                c.enabled = False
                 nowdisabled = True
         else:
             globalendpoint = model.Session.query(SparqlEndpoint).filter_by(isglobal=True, isenabled=True, isdataallowed=True).first()
@@ -117,7 +121,7 @@ class SparqlPackageController(PackageController):
 
         c.endpointtypes = ENDPOINT_TYPES
 
-        c.noendpoint = False if self.packageendpoint and self.packageendpoint.isenabled else True
+        c.noendpoint = False if self.packageendpoint else True
 
         if 'save' in request.params:
             # It's POST call after form
@@ -205,12 +209,13 @@ class SparqlPackageController(PackageController):
                     model.Session.commit()
                 c.globalendpointselected = False
                 c.noendpoint = False
+                c.enabled = True
 
         elif 'enable' in request.params and not c.globalendpointselected:
             if self.packageendpoint:
                 self.packageendpoint.isenabled = True
                 c.storeconfigform['endpoint_enabled'] = True
-                c.noendpoint = False
+                c.enabled = True
                 log.info('[' + id + '] Enabling rdf store...')
                 model.Session.commit()
                 c.successmessage = "Endpoint succesfully enabled"
@@ -219,7 +224,7 @@ class SparqlPackageController(PackageController):
             if self.packageendpoint:
                 self.packageendpoint.isenabled = False
                 c.storeconfigform['endpoint_enabled'] = False
-                c.noendpoint = True
+                c.enabled = False
                 log.info('[' + id + '] Disabling rdf store...')
                 model.Session.commit()
                 c.successmessage = "Endpoint succesfully disabled"

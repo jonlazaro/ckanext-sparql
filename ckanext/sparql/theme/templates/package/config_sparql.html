@@ -9,12 +9,12 @@
   <div py:match="content">
     <div class="tabbable tabs-left">
       <ul class="nav nav-tabs">
-        <li class="${'active' if (not c.uploadwarningmessage and not c.uploadsuccessmessage and not c.uploaderrormessage) else ''}"><a data-toggle="tab" href="#rdf-store">RDF Store configuration</a></li>
-        <li class="${'active' if (c.uploadwarningmessage or c.uploadsuccessmessage or c.uploaderrormessage) else ''}" py:if="not c.noendpoint"><a data-toggle="tab" href="#update-data">Upload RDF data</a></li>
+        <li class="${'active' if (not c.uploadwarningmessage and not c.uploadsuccessmessage and not c.uploaderrormessage) or c.warningmessage or c.successmessage else ''}"><a data-toggle="tab" href="#rdf-store">RDF Store configuration</a></li>
+        <li class="${'active' if (c.uploadwarningmessage or c.uploadsuccessmessage or c.uploaderrormessage) and not c.warningmessage and not c.successmessage else ''}" py:if="not c.noendpoint and c.enabled"><a data-toggle="tab" href="#update-data">Upload RDF data</a></li>
       </ul>
       <div class="tab-content">
 
-        <div class="tab-pane ${'active' if (not c.uploadwarningmessage and not c.uploadsuccessmessage and not c.uploaderrormessage) else ''}" id="rdf-store">
+        <div class="tab-pane ${'active' if (not c.uploadwarningmessage and not c.uploadsuccessmessage and not c.uploaderrormessage) or c.warningmessage or c.successmessage  else ''}" id="rdf-store">
           <div class="alert" py:if="c.warningmessage != None">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
             ${c.warningmessage}
@@ -73,7 +73,7 @@
           </div>
         </div>
 
-        <div class="tab-pane ${'active' if (c.uploadwarningmessage or c.uploadsuccessmessage or c.uploaderrormessage) else ''}" id="update-data" py:if="not c.noendpoint">
+        <div class="tab-pane ${'active' if (c.uploadwarningmessage or c.uploadsuccessmessage or c.uploaderrormessage) and not c.warningmessage and not c.successmessage else ''}" id="update-data" py:if="not c.noendpoint and c.enabled">
           <form 
             id="admin-rdfstore-configuration" 
             action="/dataset/${c.pkg.name}/edit/sparql"
