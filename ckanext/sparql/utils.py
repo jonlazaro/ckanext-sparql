@@ -75,6 +75,32 @@ def get_package_list():
         print 'ckan failed to get package list, status_code (%s), error %s' % (res.status_code, res.content)
         return ()
 
+def get_package(package_id):
+    res = requests.post(
+        API_URL + 'action/package_show', json.dumps({'id': package_id}),
+        headers = {'Authorization': API_KEY,
+                   'Content-Type': 'application/json'}
+    )
+
+    if res.status_code == 200:
+        return json.loads(res.content)['result']
+    else:
+        print 'ckan failed to get package data, status_code (%s), error %s' % (res.status_code, res.content)
+        return ()
+
+def update_resource(resource):
+    res = requests.post(
+        API_URL + 'action/resource_update', json.dumps(resource),
+        headers = {'Authorization': API_KEY,
+                   'Content-Type': 'application/json'}
+    )
+
+    if res.status_code == 200:
+        return json.loads(res.content)['result']
+    else:
+        print 'ckan failed to update resource, status_code (%s), error %s' % (res.status_code, res.content)
+        return ()
+
 def update_task_status(task_info):
     res = requests.post(
         API_URL + 'action/task_status_update', json.dumps(task_info),

@@ -15,7 +15,7 @@ import requests
 import os
 import ConfigParser
 
-from utils import update_task_status, get_package_list, get_global_sparql_enpoint
+from utils import update_task_status, get_package_list, get_global_sparql_enpoint, get_package, update_resource
 
 #Configuration load
 config = ConfigParser.ConfigParser()
@@ -132,6 +132,17 @@ def upload_rdf(pkg_data, data, data_format):
         'last_updated': datetime.now().isoformat()
     }
     update_task_status(task_info)
+
+    try:
+        pkg = get_package(pkg_data['id'])
+        for res in pkg['resources']:
+            if 'generated_by_ckanextsparql' in res and res['generated_by_ckanextsparql']:
+                res['last_modified'] = datetime.now().isoformat()
+                update_resource(res)
+                break
+    except:
+        print 'Unable to update last_modified'
+
     return 1
 
 @periodic_task(run_every=periodicity)
