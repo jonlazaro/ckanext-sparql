@@ -7,7 +7,10 @@ from ckan.logic import get_action
 from ckanext.sparql.sparql_model.model import SparqlEndpoint
 from ckan.controllers.package import PackageController
 from ckan.model.package import Package
+from ckan.model.resource import Resource, ResourceGroup
 from ckan.lib.celery_app import celery
+
+from vdm.sqlalchemy.base import SQLAlchemySession, Revision
 
 from ckanext.sparql.utils import execute_query, get_task_status, SUPPORTED_RDF_SYNTAXES, ENDPOINT_TYPES, RESULT_FORMATS
 
@@ -26,6 +29,23 @@ class SparqlPackageController(PackageController):
         self.packageendpoint = self.packageendpointquery.first()
         if c.action == 'sparql_endpoint' and (not self.packageendpoint or not self.packageendpoint.isenabled):
             abort(404)
+
+    def __create_sparl_resource(self, packagedb, endpoint_url):
+        self.__delete_sparl_resource(packagedb)
+
+        # Little hack to create a Revision for the SQLAlchemy Session provided by CKAN. Otherwise resource insertion fails because "No revision is currently set for this Session".
+        SQLAlchemySession.set_revision(model.Session, Revision())
+
+        packagedb.add_resource(url=endpoint_url, format=u'api/sparql', description=u'SPARQL endpoint', name=u'SPARQL endpoint', resource_type=u'api', extras={'generated_by_ckanextsparql': True})
+
+        model.Session.commit()
+
+    def __delete_sparl_resource(self, packagedb):
+        for res in packagedb.resources:
+            if 'generated_by_ckanextsparql' in res.extras and res.extras['generated_by_ckanextsparql']:
+                model.Session.delete(res)
+        model.Session.commit()
+
 
     def sparql_endpoint(self, id):
         # using default functionality
@@ -138,6 +158,10 @@ class SparqlPackageController(PackageController):
                         log.info('[' + id + '] Removing existing -custom- endpoint to replace it with global one...')
                         model.Session.delete(self.packageendpoint)
                     model.Session.commit()
+
+                    # Create a resource describing the SPARQL endpoint
+                    self.__create_sparl_resource(packagedb, globalendpoint.sparqlurl)
+
                     c.successmessage = "Global endpoint succesfully selected"
                 else:
                     log.info('[' + id + '] No changes, global was already selected')
@@ -156,6 +180,10 @@ class SparqlPackageController(PackageController):
                         log.info('[' + id + '] Removing existing -custom- endpoint...')
                         model.Session.delete(self.packageendpoint)
                     model.Session.commit()
+
+                    # Delete the SPARQL resource
+                    self.__delete_sparl_resource(packagedb)
+
                     c.successmessage = "Endpoint succesfully deleted"
                 else:
                     # There was already 'none' selected
@@ -206,7 +234,11 @@ class SparqlPackageController(PackageController):
                         packagedb.endpoints = [endpointdb]
                         c.storeconfigform['endpoint_enabled'] = True
                         c.successmessage = "Endpoint succesfully created"
+
                     model.Session.commit()
+                    # Create a resource describing the SPARQL endpoint
+                    self.__create_sparl_resource(packagedb, endpointdb.sparqlurl)
+
                 c.globalendpointselected = False
                 c.noendpoint = False
                 c.enabled = True
@@ -218,6 +250,10 @@ class SparqlPackageController(PackageController):
                 c.enabled = True
                 log.info('[' + id + '] Enabling rdf store...')
                 model.Session.commit()
+
+                # Create a resource describing the SPARQL endpoint
+                self.__create_sparl_resource(packagedb, endpointdb.sparqlurl)
+
                 c.successmessage = "Endpoint succesfully enabled"
 
         elif 'disable' in request.params and not c.globalendpointselected:
@@ -227,6 +263,10 @@ class SparqlPackageController(PackageController):
                 c.enabled = False
                 log.info('[' + id + '] Disabling rdf store...')
                 model.Session.commit()
+
+                # Delete the SPARQL resource
+                self.__delete_sparl_resource(packagedb)
+
                 c.successmessage = "Endpoint succesfully disabled"
 
         elif 'upload_rdf' in request.params:
