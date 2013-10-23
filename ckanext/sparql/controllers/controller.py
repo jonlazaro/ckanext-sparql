@@ -7,7 +7,6 @@ from ckan.logic import get_action
 from ckanext.sparql.sparql_model.model import SparqlEndpoint
 from ckan.controllers.package import PackageController
 from ckan.model.package import Package
-from ckan.model.resource import Resource, ResourceGroup
 from ckan.lib.celery_app import celery
 
 from vdm.sqlalchemy.base import SQLAlchemySession, Revision
@@ -32,12 +31,9 @@ class SparqlPackageController(PackageController):
 
     def __create_sparl_resource(self, packagedb, endpoint_url):
         self.__delete_sparl_resource(packagedb)
-
         # Little hack to create a Revision for the SQLAlchemy Session provided by CKAN. Otherwise resource insertion fails because "No revision is currently set for this Session".
         SQLAlchemySession.set_revision(model.Session, Revision())
-
         packagedb.add_resource(url=endpoint_url, format=u'api/sparql', description=u'SPARQL endpoint', name=u'SPARQL endpoint', resource_type=u'api', extras={'generated_by_ckanextsparql': True})
-
         model.Session.commit()
 
     def __delete_sparl_resource(self, packagedb):
