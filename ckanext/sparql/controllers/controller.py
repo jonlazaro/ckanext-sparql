@@ -139,10 +139,10 @@ class SparqlPackageController(PackageController):
 
         c.noendpoint = False if self.packageendpoint else True
 
-        if 'save' in request.params:
-            # It's POST call after form
-            packagedb = model.Session.query(Package).filter_by(name=id).first()
+        packagedb = model.Session.query(Package).filter_by(name=id).first()
 
+        # It's POST call after form
+        if 'save' in request.params:
             # Global endpoint selected
             if request.params['globalendpoint'] == 'global' and globalendpoint:
                 if not c.globalendpointselected:
@@ -233,7 +233,7 @@ class SparqlPackageController(PackageController):
 
                     model.Session.commit()
                     # Create a resource describing the SPARQL endpoint
-                    self.__create_sparl_resource(packagedb, endpointdb.sparqlurl)
+                    self.__create_sparl_resource(packagedb, datadict['sparqlurl'])
 
                 c.globalendpointselected = False
                 c.noendpoint = False
@@ -248,7 +248,7 @@ class SparqlPackageController(PackageController):
                 model.Session.commit()
 
                 # Create a resource describing the SPARQL endpoint
-                self.__create_sparl_resource(packagedb, endpointdb.sparqlurl)
+                self.__create_sparl_resource(packagedb, self.packageendpoint.sparqlurl)
 
                 c.successmessage = "Endpoint succesfully enabled"
 
@@ -294,6 +294,7 @@ class SparqlPackageController(PackageController):
             else:
                 c.uploadwarningmessage = "You can't upload more than one RDF data block at the same time."
 
+        c.pkg_dict = get_action('package_show')(context, {'id': c.pkg.id})
         return render('package/config_sparql.html')
         # [TODO] If endpoint created or updated, check if valid with celery query and update test.
 
