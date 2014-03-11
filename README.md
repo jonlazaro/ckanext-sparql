@@ -57,3 +57,10 @@ Start the CKAN instance
 Start the Celery server
 
     paster celeryd run beat
+
+Entidades financiadoras
+------------------------
+
+ **Ministerio de Ciencia e Innovación, Subprograma INNPACTO 2011 (IPT-2011- 0949 -430000)**
+ 
+ ![Ministerio de Economía y Competitividad](https://www.fundacionctic.org/sites/default/files/images/2011-Web-EconomiaC-63px2.jpg) ![Programa INNPACTO](https://www.fundacionctic.org/sites/default/files/images/innpacto.jpeg) ![Fondo Europeo de Desarrollo Regional](https://www.fundacionctic.org/sites/default/files/images/feder.jpg)
